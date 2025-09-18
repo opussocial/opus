@@ -1,0 +1,246 @@
+<%define "styles"%>
+<style>
+    .auth-container {
+      max-width: 450px;
+      margin: 5vh auto 0;
+    }
+    .auth-segment {
+      border-radius: 0.28571429rem !important;
+    }
+    .auth-toggle {
+      cursor: pointer;
+      color: #00B5AD;
+      text-decoration: underline;
+    }
+    .auth-toggle:hover {
+      color: #00827c;
+    }
+    .hidden {
+      display: none !important;
+    }
+    [v-cloak] {
+      display: none;
+    }
+</style>
+<%end%>
+
+<%define "main"%>
+
+<div id="app" @vue:mounted="init" @vue:unmounted="destroy">
+
+  <div class="ui container">
+    <div class="auth-container">
+      
+      <!-- Login Form -->
+      <div id="login-form" class="ui raised" v-show="showOnLogin">
+        <h2 class="ui teal header">
+          <div class="content section-title">LOGIN</div>
+        </h2>
+        
+        <form class="ui large form">
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="user icon"></i>
+              <input type="text" v-model="store.model.email" placeholder="E-mail address">
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="key icon"></i>
+              <input type="password" v-model="store.model.password" placeholder="Password">
+            </div>
+          </div>
+          <div class="ui fluid massive teal submit button futura" @click="fire('auth:login')">LOGIN</div>
+        </form>
+
+        <div class="ui message futura massive center">
+          NEW HERE? <a href="#/register" class="auth-toggle futura">SIGN UP</a><br>
+          NEW PASSWORD? <a href="#/request" class="auth-toggle futura">REQUEST RESET</a>
+        </div>
+      </div>
+      
+      <!-- Register Form -->
+      <div id="register-form" v-show="showOnRegister" class="ui raised">
+        <h2 class="ui teal header">
+          <div class="content section-title futura">SIGN UP</div>
+        </h2>
+        
+        <form class="ui large form">
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="envelope icon"></i>
+              <input v-model="store.model.email" type="email" placeholder="E-mail address">
+            </div>
+          </div>
+          
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="key icon"></i>
+              <input v-model="store.model.password" type="password" placeholder="Password">
+            </div>
+          </div>
+          
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="lock icon"></i>
+              <input v-model="store.model.confirmPassword" type="password" placeholder="Confirm Password">
+            </div>
+          </div>
+          
+          <div class="field">
+            <div class="ui toggle massive checkbox">
+              <input v-model="store.model.agree" type="checkbox" tabindex="0">
+              <label>I agree to the Terms and Conditions</label>
+            </div>
+          </div>
+          
+          <div class="ui fluid massive teal submit button futura" @click="fire('auth:register')">REGISTER</div>
+        </form>
+
+        <div class="ui message massive futura">
+          REGISTERED? <a href="#/login" class="auth-toggle futura">SIGN IN</a> OR GO <a href="/" class="auth-toggle futura" @click="window.history.back()">BACK</a>
+        </div>
+
+      </div>
+
+
+      <!-- Request Password Reset Form -->
+      <div id="reset-request-form" class="ui raised" v-show="showOnRequest">
+        <h2 class="ui teal header">
+          <div class="content section-title">PASSWORD RESET</div>
+        </h2>
+        
+        <form class="ui large form">
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="user icon"></i>
+              <input type="email" v-model="store.model.email" placeholder="E-mail address">
+            </div>
+          </div>
+          <div class="ui fluid massive teal submit button futura" @click="fire('auth:request')">REQUEST</div>
+        </form>
+
+        <div class="ui message futura massive center">
+          <a href="#/login" class="auth-toggle futura">SIGN IN</a>
+        </div>
+      </div>
+
+      <!-- Reset Password Form -->
+      <div id="reset-form" class="ui raised" v-show="showOnReset">
+        <h2 class="ui teal header">
+          <div class="content section-title">NEW PASSWORD</div>
+        </h2>
+        
+        <form class="ui large form">
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="key icon"></i>
+              <input type="password" v-model="store.model.password" placeholder="Password">
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui massive left icon input">
+              <i class="lock icon"></i>
+              <input type="password" v-model="store.model.confirmPassword" placeholder="Password Confirmation">
+            </div>
+          </div>
+ 
+          <div class="ui fluid massive teal submit button futura" @click="fire('auth:reset')">RESET</div>
+        </form>
+
+      </div>
+
+      <!-- Confirm Screen -->
+      <div id="reset-form" class="ui raised" v-show="showOnConfirm">
+        <h2 class="ui teal header">
+          <div class="content section-title">CONFIRMATION</div>
+        </h2>
+          <p v-show="store.view.confirmation.requested && store.view.confirmation.confirmed" class="content futura">CONFIRMED! YOU CAN NOW LOGIN</p>
+          <p v-show="store.view.confirmation.requested && !store.view.confirmation.confirmed" class="content futura">CONFIRMATION FAILED.</p>
+
+      </div>
+
+      <!-- Bye Bye Screen -->
+      <div id="bye-bye" class="ui raised" v-show="showOnBye">
+        <h2 class="ui teal header">
+          <div class="content section-title">BYE</div>
+        </h2>
+          <p class="content futura">WE HOPE TO SEE YOU AGAIN, SOON.</p>
+      </div>
+
+      <!-- End Screens -->
+      <% template "message-list" %>
+
+    </div>
+  </div>
+</div>
+<%end%>
+
+<%define "template-scopes"%>
+<script>
+      function authScope() {
+        initialized = false;
+        const subscriptions = [
+          {event: 'auth:login', action: onLogin},
+          {event: 'auth:reset', action: onReset},
+          {event: 'auth:register', action: onRegister},
+          {event: 'auth:request', action: onResetRequest},
+          {event: 'auth:confirm', action: onConfirmation},
+          {event: 'auth:confirmed', action: () => { store.view.confirmation.confirmed = true; }},
+        ];
+
+          const onRoute = (action) => {
+            store.view.screen = action ? action : 'register';
+          };
+          const routes = {
+            '/': onRoute,
+            '/:action': onRoute,
+          };
+          const router = Router(routes);
+          router.init();
+
+        return {
+          init() {
+            if (localStorage.getItem("auth:token")) {
+              window.location.href = "/admin/auth#/profile";
+            }
+
+            if (!initialized) {
+              subscriptions.map((s) => {
+                return bus.subscribe(s.event, s.action);
+              });
+            }
+ 
+            const param = getQueryParam("confirm");
+            if (param) {
+              bus.publish("auth:confirm",param);
+            }
+          },
+          fire(event) {
+            bus.publish(event);
+          },
+          get showOnLogin() {
+            return store.view.screen === 'login';
+          },
+          get showOnRegister() {
+            return store.view.screen === 'register';
+          },
+          get showOnRequest() {
+            return store.view.screen === 'request';
+          },
+          get showOnConfirm() {
+            return getQueryParam('confirm');
+          },
+          get showOnReset() {
+            return getQueryParam('reset');
+          },
+          get showOnBye() {
+            return store.view.screen === 'bye';
+          },
+          store,
+        };
+      };
+      PetiteVue.createApp(authScope()).mount("#app");
+</script>
+
+<%end%>

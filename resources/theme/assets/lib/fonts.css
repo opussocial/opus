@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'Benton';
+  src: url('/assets/fonts/BentonModDisp-Ultra.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src: url('/assets/fonts/Futura Extra Black Condensed BT.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+
+/*
+@font-face {
+  font-family: 'DIN';
+  src: url('/assets/fonts/D-DIN-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Franklin';
+  src: url('/assets/fonts/FranklinGothic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bodoni';
+  src: url('/assets/fonts/lte50438.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+*/

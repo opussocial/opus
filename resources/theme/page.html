@@ -1,0 +1,22 @@
+<% define "page" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+    <% .RenderedCss %>
+</head>
+<body>
+  <div id="error" class="ui container" style="min-height: 80vh;">
+    <div class="ui grid" style="margin-top: 5vh;">
+      <div class="content-container">
+        <h1 class="page-title opus-purple" id="description">ERROR</h1>      
+        <h1 class="section-title opus-purple" id="description">DOCUMENT TEMPLATE IS NOT DEFINED</h1>
+        <p>Define a "document" key under "views" in your module.yml</p>
+        <p>Restart your server</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+<% end %>
+
