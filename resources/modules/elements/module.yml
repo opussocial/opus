@@ -1,0 +1,70 @@
+module:
+  name: elements
+  depends: []
+  http:
+    api:
+      prefix: api/v1/elements
+      routes:
+        - pattern: /:story
+          payload: element:results
+          action: element:root
+          method: GET
+        - pattern: /:story/:def
+          payload: element:results
+          action: element:index
+          method: GET
+        - pattern: /:story/:def/:element
+          payload: element
+          action: element:show
+          method: GET
+        - pattern: /:story/:def
+          payload: element
+          action: element:create
+          method: POST
+        - pattern: /:element_id
+          payload: default:id
+          action: element:delete
+          method: DELETE
+        - pattern: /:story/:element/graph
+          payload: graph
+          action: graph:create
+          method: POST
+        - pattern: /graph/:graph_id
+          payload: default:id
+          action: graph:delete
+          method: DELETE
+        - pattern: /:story/:element/interaction
+          payload: interaction
+          action: interaction:create
+          method: POST
+        - pattern: /interaction/:interaction_id
+          payload: default:id
+          action: interaction:delete
+          method: DELETE
+        - pattern: /:story/:element/taxonomy
+          payload: taxonomy
+          action: taxonomy:create
+          method: POST
+        - pattern: /:story/:element/taxonomy/:taxonomy_id
+          payload: default:id
+          action: taxonomy:remove
+          method: DELETE
+    views:
+      document: page
+      prefix: /
+      routes:
+        - pattern: /:story
+          template: story
+          payload: element:results
+          action: element:root
+          method: GET
+        - pattern: /:story/:def
+          template: def
+          payload: element:results
+          action: element:index
+          method: GET
+        - pattern: /:story/:def/:element
+          template: element
+          payload: element
+          action: element:show
+          method: GET

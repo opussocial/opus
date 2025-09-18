@@ -1,0 +1,411 @@
+<% define "styles" %>
+<style>
+        .mermaid-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            min-height: 400px;
+        }
+</style>
+<% end %>
+
+<% define "meta" %>
+<!-- silenzio -->
+<% end %>
+
+<% define "header" %>
+  <div class="ui sticky"> 
+    <div class="ui menu">
+      <% template "nav" %>
+    </div>
+  </div>
+<% end %>
+
+<% define "footer" %>
+<!-- silenzio -->
+<% end %> 
+
+<% define "main" %>
+<div id="app" @vue:mounted="init">
+  <div class="ui container" style="min-height: 80vh;">
+
+    <!-- HOME -->
+    <div v-show="store.view.screen === 'home'" class="ui grid" style="margin-top: 5vh;">
+      <div class="sixteen wide column">
+        <p class="page-title opus-purple" style="text-align: center;" id="description"></p>
+        <h1 id="logo" class="logo home-title color-title"></h1>
+        <h2 id="slogan" class="home-slogan opus-purple"></h2>
+      </div>
+      <div class="seven wide column">
+      </div>
+      <div class="two wide column">
+        <a href="/#/about" class="ui huge animated fluid teal button" tabindex="0">
+          <div class="visible content">more</div>
+          <div class="hidden content">
+            <i class="right arrow icon"></i>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div v-show="store.view.screen === 'about'" class="ui grid" style="margin-top: 5vh;">
+      <div class="title-container">
+        <h1 class="page-title opus-teal" id="description">ABOUT</h1>      
+      </div>
+      <div class="content-container">
+
+        <h1 class="section-title opus-teal" id="description">PROTOTYPE ANYTHING</h1>      
+
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. </p>
+
+
+      </div>
+    </div>
+
+    <!-- GETTING STARTED -->
+    <div v-show="store.view.screen === 'getting-started'" class="ui grid" style="margin-top: 5vh;">
+      <div class="title-container">
+        <h1 class="page-title opus-orange" id="description">GETTING STARTED</h1>      
+      </div>
+      <div class="content-container">
+        <h1 class="section-title opus-orange" id="description">INSTALL</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <h1 class="section-title opus-orange" id="description">DEPLOY</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <h1 class="section-title opus-orange" id="description">DESIGN & DEVELOP</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>        
+      </div>
+
+    </div>
+
+    <!-- 404 -->
+    <div v-show="store.view.screen === 'err404'" class="ui grid" style="margin-top: 5vh;">
+      <p class="page-title color-description" id="description">NOT FOUND!</p>
+    </div>
+
+  </div>
+  <div v-show="store.view.screen !== 'home'" class="ui inverted segment" style="padding-bottom: 40px;">
+    <div class="ui container" style="margin-top: 2em;">
+        <div class="ui grid">
+          <div class="eight wide column">
+            <h3 class="cta">KEEP IN TOUCH</h3>
+          </div>
+          <div class="eight wide column">
+
+          <div class="ui huge wide input massive" style="width:100%;">
+            <input
+              type="text"
+              placeholder="email"
+              value=""
+            />
+            <button class="ui teal button">
+              i want updates!
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% end %>
+
+
+<% define "template-scripts" %>
+  <script>
+ 
+      class TypeWriter {
+        constructor(element, options = {}) {
+          this.element = element;
+          this.options = {
+            cursor: '',
+            cursorBlinkSpeed: 500,
+            deleteSpeed: 50,
+            pauseOnPunctuation: 150,
+            ...options
+          };
+          this.queue = [];
+          this.isTyping = false;
+          this.initCursor();
+        }
+
+        initCursor() {
+          this.cursor = document.createElement('span');
+          this.cursor.className = 'typewriter-cursor';
+          this.cursor.textContent = this.options.cursor;
+          this.element.appendChild(this.cursor);
+          this.blinkCursor();
+        }
+
+        blinkCursor() {
+          setInterval(() => {
+            this.cursor.style.visibility = this.cursor.style.visibility === 'hidden' ? 'visible' : 'hidden';
+          }, this.options.cursorBlinkSpeed);
+        }
+
+        type(text, speed = 100, callback) {
+          this.queue.push({
+            action: 'type',
+            text,
+            speed,
+            callback
+          });
+          this.processQueue();
+          return this;
+        }
+
+        delete(chars, speed = 50, callback) {
+          this.queue.push({
+            action: 'delete',
+            chars,
+            speed,
+            callback
+          });
+          this.processQueue();
+          return this;
+        }
+
+        pause(duration) {
+          this.queue.push({
+            action: 'pause',
+            duration
+          });
+          this.processQueue();
+          return this;
+        }
+
+        hide() {
+          this.queue.push({
+            action: 'hide',
+            duration: 0
+          });
+          this.processQueue();
+          return this;
+        }
+
+        processQueue() {
+          if (this.isTyping || this.queue.length === 0) return;
+          
+          const task = this.queue.shift();
+          this.isTyping = true;
+          
+          switch (task.action) {
+            case 'type':
+              this.handleType(task);
+              break;
+            case 'delete':
+              this.handleDelete(task);
+              break;
+            case 'hide':
+              this.element.style.display = "none"
+              break;
+            case 'pause':
+              setTimeout(() => {
+                this.isTyping = false;
+                this.processQueue();
+              }, task.duration);
+              break;
+          }
+        }
+
+        handleType({ text, speed, callback }) {
+          // Parse HTML tags while maintaining text nodes
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const nodes = doc.body.childNodes;
+          
+          let currentIndex = 0;
+          const processNode = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const chars = node.textContent.split('');
+              chars.forEach((char, i) => {
+                setTimeout(() => {
+                  const span = document.createElement('span');
+                  span.className = `char char-${currentIndex++}`;
+                  
+                  // Add Lettering.js features
+                  span.style.display = 'inline-block';
+                  span.style.opacity = '0';
+                  span.style.transform = 'translateY(20px)';
+                  
+                  // Special treatment for spaces
+                  span.textContent = char === ' ' ? '\u00A0' : char;
+                  
+                  // Insert before cursor
+                  this.element.insertBefore(span, this.cursor);
+                  
+                  // Animate character
+                  setTimeout(() => {
+                    span.style.transition = `all ${speed/2}ms ease-out`;
+                    span.style.opacity = '1';
+                    span.style.transform = 'translateY(0)';
+                    
+                    // Add bounce effect for letters
+                    if (/[a-zA-Z]/.test(char)) {
+                      setTimeout(() => {
+                        span.style.transform = 'translateY(-5px)';
+                        setTimeout(() => {
+                          span.style.transform = 'translateY(0)';
+                        }, speed/3);
+                      }, speed/2);
+                    }
+                  }, 10);
+                  
+                  // Pause on punctuation
+                  if (/[.,!?;:]/.test(char)) {
+                    setTimeout(() => {
+                      this.cursor.style.animation = 'pulse 0.5s 2';
+                      setTimeout(() => {
+                        this.cursor.style.animation = '';
+                      }, 1000);
+                    }, this.options.pauseOnPunctuation);
+                  }
+                  
+                  // Completion
+                  if (i === chars.length - 1 && callback) {
+                    setTimeout(callback, speed);
+                  }
+                }, i * speed);
+              });
+            }
+          };
+          
+          nodes.forEach(processNode);
+          
+          // Queue completion
+          setTimeout(() => {
+            this.isTyping = false;
+            this.processQueue();
+          }, text.length * speed + this.options.pauseOnPunctuation * (text.match(/[.,!?;:]/g) || []).length);
+        }
+
+        handleDelete({ chars, speed, callback }) {
+          const children = Array.from(this.element.children)
+            .filter(el => el !== this.cursor);
+          
+          const toRemove = chars === 'all' 
+            ? children 
+            : children.slice(-chars);
+          
+          toRemove.reverse().forEach((child, i) => {
+            setTimeout(() => {
+              child.style.transition = `all ${speed}ms ease-in`;
+              child.style.opacity = '0';
+              child.style.transform = 'translateY(-20px) rotate(10deg)';
+              setTimeout(() => {
+                child.remove();
+              }, speed);
+            }, i * speed);
+          });
+          
+          setTimeout(() => {
+            this.isTyping = false;
+            if (callback) callback();
+            this.processQueue();
+          }, toRemove.length * speed);
+        }
+      }
+
+      const logoWriter = new TypeWriter(document.getElementById('logo'), {
+        cursor: '',
+        cursorBlinkSpeed: 400
+      });
+
+      const descriptionWriter = new TypeWriter(document.getElementById('description'));
+
+      const sloganWriter = new TypeWriter(document.getElementById('slogan'), {
+        cursor: '',
+        cursorBlinkSpeed: 400
+      });
+
+      // const logoText = "LILAS"
+      const logoText = "OPUS"
+      const part1 = "DEFINE ELEMENTS, ACTORS AND INTERACTIONS"
+      const part3 = "YOUR STORY WILL TELL ITSELF"
+      const slogan = "TELL YOUR STORY"
+
+      function writeLogo() {
+        logoWriter.type(logoText, 400, writeSlogan);
+      }
+
+      function writeSlogan() {
+        sloganWriter.type(slogan, 60)
+      }
+       const bigLogo = document.querySelector('#logo');
+          const colors = ['char-0', 'char-1', 'char-2', 'char-3'].reverse();
+
+          function rotateColors() {
+            const spans = bigLogo.querySelectorAll('.char');
+
+              spans.forEach((span, index) => {
+                  const currentColor = [...span.classList].find(cls => colors.includes(cls));
+                  if (currentColor) {
+                      span.classList.remove(currentColor);
+                      const currentIndex = colors.indexOf(currentColor);
+                      const nextIndex = (currentIndex + 1) % colors.length;
+                      span.classList.add(colors[nextIndex]);
+                  }
+              });
+        }
+
+      function writeDescription() {
+        descriptionWriter
+          .type(part1, 30)
+          .pause(1200)
+          .delete(part1.length, 20, writeLogo)
+          .pause(300)
+          .type(part3, 80, () => {setInterval(rotateColors, 600)})
+          .pause(300);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        writeDescription();
+      })
+  </script>
+<% end %>
+
+<% define "template-scopes" %>
+  <script>
+
+    function siteScope() {
+      const onRoute = (screen) => {
+        store.view.screen = screen ? screen : 'home';
+      }
+      var routes = {
+        '/': onRoute,
+        '/:screen': onRoute,
+      };
+      var router = Router(routes);
+      router.init();
+
+      return {
+        init() {console.log(router)},
+        store,
+      };
+    }
+    PetiteVue.createApp(siteScope()).mount("#app");
+  </script>
+<% end %>
