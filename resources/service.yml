@@ -3,10 +3,6 @@ service:
   host: localhost
   modules:
     - auth
-    - site
-    - story
-  settings:
-    - test
   config:
     jwt-secret: 321dçalksdç398103
     signing-key: d31231ln32k1323j1

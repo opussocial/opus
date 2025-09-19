@@ -10,7 +10,6 @@ import (
     "os/signal"
 
     "gitlab.com/pedrokoblitz/opus-go/modules/auth"
-    "gitlab.com/pedrokoblitz/opus-go/modules/story"
     "gitlab.com/pedrokoblitz/opus-go/services"
 )
 
@@ -32,48 +31,46 @@ func main() {
         switch module {
         case "auth":
             auth.Register(container.Registry)
-        case "story":
-            story.Register(container.Registry)
         }
-    }
 
-    // Create context for shutdown
-    shutdownCtx, stop := signal.NotifyContext(context.Background(), 
+        // Create context for shutdown
+        shutdownCtx, stop := signal.NotifyContext(context.Background(), 
         syscall.SIGINT, syscall.SIGTERM)
-    defer stop()
+        defer stop()
 
-    go func() {
-        log.Printf("Starting HTTP server on :%d", config.Service.HTTP.Port)
-        if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
-            log.Printf("HTTP service failed: %v", err)
-            stop() // Trigger shutdown if HTTP fails
+        go func() {
+            log.Printf("Starting HTTP server on :%d", config.Service.HTTP.Port)
+            if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
+                log.Printf("HTTP service failed: %v", err)
+                stop() // Trigger shutdown if HTTP fails
+            }
+        }()
+
+        // Wait for shutdown signal
+        <-shutdownCtx.Done()
+        log.Println("Shutdown signal received")
+
+        // Start graceful shutdown with timeout
+        gracefulCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+        defer cancel()
+
+        // Shutdown HTTP server
+        log.Println("Shutting down HTTP server...")
+        if err := httpSvc.Shutdown(gracefulCtx); err != nil {
+            log.Printf("HTTP server shutdown error: %v", err)
+        } else {
+            log.Println("HTTP server stopped gracefully")
         }
-    }()
 
-    // Wait for shutdown signal
-    <-shutdownCtx.Done()
-    log.Println("Shutdown signal received")
+        // Close database connection
+        log.Println("Closing database connection...")
+        db := container.DB
+        if err := db.Close(); err != nil {
+            log.Printf("Database close error: %v", err)
+        } else {
+            log.Println("Database connection closed")
+        }
 
-    // Start graceful shutdown with timeout
-    gracefulCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-    defer cancel()
-
-    // Shutdown HTTP server
-    log.Println("Shutting down HTTP server...")
-    if err := httpSvc.Shutdown(gracefulCtx); err != nil {
-        log.Printf("HTTP server shutdown error: %v", err)
-    } else {
-        log.Println("HTTP server stopped gracefully")
+        log.Println("Service shutdown complete")
     }
-
-    // Close database connection
-    log.Println("Closing database connection...")
-    db := container.DB
-    if err := db.Close(); err != nil {
-        log.Printf("Database close error: %v", err)
-    } else {
-        log.Println("Database connection closed")
-    }
-
-    log.Println("Service shutdown complete")
 }
