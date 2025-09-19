@@ -26,7 +26,7 @@
 
 <%define "main"%>
 
-<div id="app" @vue:mounted="init" @vue:unmounted="destroy">
+<div id="app" @vue:mounted="init" @vue:unmounted="destroy" v-cloak>
 
   <div class="ui container">
     <div class="auth-container">
@@ -220,13 +220,13 @@
             bus.publish(event);
           },
           get showOnLogin() {
-            return store.view.screen === 'login';
+            return useScreen('login');
           },
           get showOnRegister() {
-            return store.view.screen === 'register';
+            return useScreen('register');
           },
           get showOnRequest() {
-            return store.view.screen === 'request';
+            return useScreen('request');
           },
           get showOnConfirm() {
             return getQueryParam('confirm');
@@ -235,7 +235,7 @@
             return getQueryParam('reset');
           },
           get showOnBye() {
-            return store.view.screen === 'bye';
+            return useScreen('bye');
           },
           store,
         };

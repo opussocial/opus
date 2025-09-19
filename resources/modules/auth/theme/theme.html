@@ -50,23 +50,23 @@
       },
     });
 
-    //auth template 
+    const setModel = (data) => {
+      store.model = data;
+    };
+
+    //auth template
+    const onLoggedIn = (data) => {
+        setCookie('auth:token', data.token, 1);
+        localStorage.setItem('auth:token', data.token);
+        window.location.href = "/admin/profile#/view";
+    }
+
     const onLogin = () => {
       store.view.loading = true;
-      const subscription = {
-        next: (data) => {
-          setCookie('auth:token', data.token, 1);
-          localStorage.setItem('auth:token', data.token);
-          store.view.loading = false;
-          window.location.href = "/admin/profile#/view";
-        },
-        error: onError,
-      };
-
       const def = {
         method: 'post',
         url: '/auth/login',
-        subscription,
+        event: "auth:logged:in",
         model: {
           email: store.model.email,
           password: store.model.password,
@@ -75,52 +75,36 @@
       return useApi(def);
     };
 
-    const setModel = (data) => {
-      store.model = data;
-    };
-
     const onConfirmation = (token) => {
         store.view.confirmation.requested = true;
         store.view.loading = true;
-        const sub = {
-          event: "auth:confirmed",
-        };
-        const subscription = useSubscription(sub);
         def = {
           model: {token},
           method: 'post',
           url: '/auth/confirm',
-          subscription,
+          event: "auth:confirmed",
         }
         return useApi(def);
     }
 
     const onResetRequest = () => {
         store.view.loading = true;
-        const sub = {
-          event: "auth:requested",
-        };
-        const subscription = useSubscription(sub);
         def = {
           model: {email: store.model.email},
           method: 'post',
           url: '/auth/request',
-          subscription,
+          event: "auth:requested",
         }
         return useApi(def);
     };
 
     const onReset = () => {
         store.view.loading = true;
-        const sub = {
-          event: "auth:reseted",
-        };
-        const subscription = useSubscription(sub);
         def = {
           model: {password: store.model.password, token: getQueryParam('reset')},
           method: 'post',
           url: '/auth/reset',
-          subscription,
+          event: "auth:reseted",
         }
         return useApi(def);
     };
@@ -138,16 +122,10 @@
           return;
         }
         
-        const subscription = {
-          next: (data) => {
-            window.location.href = "/";
-          },
-          error: onError,
-        };
         def = {
           method: 'post',
           url: '/auth/register',
-          subscription,
+          event: 'auth:registered',
           model: {
             email: store.model.email,
             password: store.model.password
@@ -159,14 +137,10 @@
     // profile template 
       const onLoadProfile = () => {
           store.view.loading = true;
-          const sub = {
-            event: "auth:loaded",
-          };
-          const subscription = useSubscription(sub);
           def = {
             method: 'get',
             url: '/auth/me',
-            subscription,
+            event: "auth:loaded",
           }
           return useApi(def);
       }
@@ -174,16 +148,12 @@
       const onUpdateProfile = () => {
         store.view.loading = true;
         const model = {email: store.model.email};
-        const sub = {
-          event: "auth:updated",
-          message: "profile updated",
-        };
         const subscription = useSubscription(sub);
         const def = {
           method: "put",
           url: '/auth/me',
           model,
-          subscription,
+          event: "auth:updated",
         }
         return useApi(def);
       };
@@ -201,7 +171,7 @@
         const def = {
           method: "delete",
           url: '/auth/me',
-          subscription,
+          event: "account:removed",
         };
         return useApi(def);
       };

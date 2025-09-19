@@ -76,7 +76,7 @@
     });
 
     const setList = (data) => {
-        store.model.stories = data.Results;
+        store.model.stories = data;
     };
 
     const setModel = (data) => {
@@ -87,146 +87,116 @@
         store.model.setting.storyId = data.id;
     };
 
+    const setDefinition = (data) => {
+      store.model.definition = data;
+    };
+
+    const setRole = (data) => {
+      store.model.role = data;
+    };
+
+    const setRelationship = (data) => {
+      store.model.relationship = data;
+    };
+
+    const setSetting = (data) => {
+      store.model.setting = data;
+    };
+
     const onLoadStories = () => {
-        store.view.loading = true;
-        const sub = {
-            event: "stories:loaded",
-        };
-        const subscription = useSubscription(sub);
         def = {
             method: 'get',
             url: '/story',
-            subscription,
+            event: "stories:loaded",
         }
         return useApi(def);
     }
 
     const onLoadStory = (slug) => {
         store.view.loading = true;
-        const sub = {
-            event: "story:loaded",
-        };
-        const subscription = useSubscription(sub);
         def = {
             method: 'get',
             url: '/story/' + slug,
-            subscription,
+            event: "story:loaded",
         }
         return useApi(def);
     }
 
     const onCreateStory = () => {
         store.view.loading = true;
-        const sub = {
-            event: "story:created",
-            message: "story created",
-            redirect: "/admin#/stories",
-        };
-        const subscription = useSubscription(sub);
         const def = {
             method: "post",
             url: '/story',
             model: store.model.story,
-            subscription,
+            event: "story:created",
         }
         return useApi(def);
     };
 
     const onUpdateStory = () => {
         store.view.loading = true;
-        const sub = {
-            event: "story:updated",
-            message: "story updated",
-        };
-        const subscription = useSubscription(sub);
         const def = {
             method: "put",
             url: '/story/' + store.model.story.slug,
             model: store.model.story,
-            subscription,
+            event: "story:updated",
         }
         return useApi(def);
     };
 
     const onDeleteStory = () => {
       store.view.loading = true;
-      const sub = {
-          event: "story:deleted",
-          message: "account deleted",
-      };
-      const subscription = useSubscription(sub);
       const def = {
           method: "delete",
           url: '/story/' + store.model.story.slug,
-          subscription,
+          event: "story:deleted",
       };
       return useApi(def);
     };
 
     const onAddDefinition = () => {
       store.view.loading = true;
-      const sub = {
-          event: "definition:created",
-          message: "definition created",
-      };
       
-      const subscription = useSubscription(sub);
       const def = {
           model: store.model.definition,
           method: "post",
           url: '/story/' + store.model.story.slug + '/def',
-          subscription,
+          event: "definition:created",
       };
       return useApi(def);      
     };
 
     const onAddRole = (storyId) => {
       store.view.loading = true;
-      const sub = {
-          event: "role:created",
-          message: "role created",
-          redirect: "/admin#/view",
-      };
-      const subscription = useSubscription(sub);
       const def = {
           model: store.model.role,
           method: "post",
           url: '/story/' + store.model.story.slug + '/role',
-          subscription,
+          event: "role:created",
       };
       return useApi(def);
     };
 
     const onAddRelationship = (storyId) => {
       store.view.loading = true;
-      const sub = {
-          event: "relationship:created",
-          message: "relationship created",
-      };
-      const subscription = useSubscription(sub);
       const def = {
           model: store.model.relationship,
           method: "post",
           url: '/story/' + store.model.story.slug + '/relationship',
-          subscription,
+          event: "relationship:created",
       };
-      return useApi(def)      
+      return useApi(def);      
     };
 
-    const onAddSetting = (storyId) => {
+    const onAddSetting = () => {
       store.view.loading = true;
-      const sub = {
-          event: "setting:created",
-          message: "setting created",
-      };
-      const subscription = useSubscription(sub);
       const def = {
           model: store.model.setting,
           method: "post",
           url: '/story/' + store.model.story.slug + '/setting',
-          subscription,
+          event: "setting:created",
       };
-      return useApi(def)      
+      return useApi(def);      
     };
 
   </script>

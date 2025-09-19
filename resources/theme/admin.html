@@ -71,6 +71,12 @@
             return view.token; 
           };
 
+            const onLoggedOut = (data) => {
+                deleteCookie('auth:token');
+                localStorage.setItem('auth:token', "");
+                window.location.href = "/admin/auth#/login";
+            }
+
             const onLogout = () => {
               store.view.loading = true;
               const subscription = {
@@ -212,34 +218,40 @@
     <% template "module-store" %>
 
     <script>
-      const onError = (err) => {
-        bus.publish(event, err);
-        store.view.loading = false;
-      };
 
-       const useSubscription = ({event, message, redirect}) => {
-            console.log({event, message, redirect})
-            return {
-                next: (data) => {
-                    if (event) {
-                        bus.publish(event, data);
-                    }
-                    if (message) {
-                        bus.publish("sys:messages", message);
-                    }
-                    if (redirect) {
-                      window.location.href = redirect;
-                    }
-                    store.view.loading = false;
-                },
-                error: onError,
-            }
-        }
-
-        const useApi = ({method, url, model, subscription}) => {
-            return client[method](url, model).subscribe(subscription);
+        const useValidation = (model) => {
+            
         };
 
+        const useScreen = (screen) => {
+            if (screen === '*') {
+                return store.view.loading === false;
+            }
+            return store.view.loading === false &&
+                   store.view.screen === screen;
+        };
+
+        const useRoute = (screen, handler) => {
+            return (param) => {
+                store.view.screen = screen;
+                if (handler) {
+                    handler(param);
+                }
+            };
+        };
+
+        const useApi = ({method, url, model, event}) => {
+            const sub = {
+                next: (data) => {
+                    bus.publish(event, data);
+                },
+                error: (err) => {
+                    bus.publish("error", err);
+                    store.view.loading = false;
+                },
+            }
+            return client[method](url, model).subscribe(sub);
+        };
     </script>
 
     <% template "nav-scope" %>
@@ -247,6 +259,7 @@
     <% template "module-scopes" %>
     <% template "template-scopes" %>
     <% template "header-scope" %>
+
 <% end %>
 
 <% define "page" %>

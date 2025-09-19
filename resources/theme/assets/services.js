@@ -56,25 +56,35 @@ class HttpClient {
 
 // RxJS Event Bus
 class EventBus {
-  constructor() {
+  constructor(hooks) {
     this.subjects = new Map(); // Stores RxJS Subjects for each event
+    this.hooks = hooks;
   }
 
   // Emit an event
   publish(event, data) {
     console.log("fired:", event);
+    if (this.hooks.onBefore) {
+      this.hooks.onBefore(event, data);
+    }
     if (!this.subjects.has(event)) {
       this.subjects.set(event, new rxjs.Subject());
     }
     this.subjects.get(event).next(data || {});
+    if (this.hooks.onAfter) {
+      this.hooks.onAfter(event, data);
+    }
   }
 
   // Subscribe to an event
-  subscribe(eventName, callback) {
+  subscribe(eventName, handler) {
     if (!this.subjects.has(eventName)) {
       this.subjects.set(eventName, new rxjs.Subject());
     }
-    return this.subjects.get(eventName).subscribe(callback);
+    if (this.hooks.onSubscribe) {
+      this.hooks.onSubscribe(eventName);
+    }
+    return this.subjects.get(eventName).subscribe(handler);
   }
 
   // Unsubscribe (cleanup)
@@ -88,6 +98,46 @@ class EventBus {
       this.subjects.get(eventName).complete();
       this.subjects.delete(eventName);
     }
+  }
+}
+
+class Component {
+  constructor(behavior, store) {
+    if (behavior) {
+      this.behavior = behavior;
+    }
+    if (store) {
+      this.store = PetiteVue.reactive(store);
+    }
+    if (router) {
+      this.router = router;
+    }
+  }
+
+  subscribe(bus) {
+    this.subscriptions = this.behavior.subscriptions.map((i) => { bus.subscribe });
+    return this;
+  }
+
+  route() {
+    const router = Router(this.behavior.routes)
+    router.init();
+    return this;
+  }
+
+  mount(elementId) {
+    const scope = {
+      store: this.store,
+      init: this.behavior.init,
+      fire(event, data) {
+        bus.publish(event, data);
+      },
+      screen(screen) {
+        return useScreen(screen);
+      },
+    };
+    PetiteVue.createApp(this.scope).mount(elementId)
+    return this;
   }
 }
 

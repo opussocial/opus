@@ -26,7 +26,7 @@
 <% end %>
 
 <% define "stories" %>
-<div v-show="showOnList" class="ui stackable grid">
+<div v-show="screen('list')" class="ui stackable grid">
     <div class="row">
         <div class="sixteen column">
             <table class="ui celled table"> 
@@ -54,7 +54,7 @@
 
 <% define "story" %>
 <!-- Create / Update Story -->
-<form v-show="showOnCreate ||showOnView || showOnEdit" class="ui form">  
+<form v-show="screen('create') ||screen('edit') || screen('view')" class="ui form">  
 
     <!-- Name Field -->
     <div class="field-row field">
@@ -64,15 +64,15 @@
                     <h2 class="futura opus-teal form-label">STORY</h2>
                 </div>
                 <div class="eight wide computer seven wide tablet sixteen wide mobile column">
-                    <div v-show="showOnCreate || showOnEdit" class="ui input massive">
+                    <div v-show="screen('create') || screen('edit')" class="ui input massive">
                         <input v-model="store.model.story.name" class="form-input" type="text" placeholder="Enter story name">
                     </div> 
-                    <div v-show="!showOnEdit && !showOnCreate" class="ui segment big">
+                    <div v-show="screen('view')" class="ui segment big">
                         <p>{{store.model.story.name}}</p>
                     </div> 
                 </div> 
                 <div class="four wide computer four wide tablet sixteen wide mobile column">
-                    <a :href="'#'+slug+'/edit'" v-show="showOnView" class="ui button opus-orange massive futura">EDIT</a>
+                    <a :href="'#'+slug+'/edit'" v-show="screen('view')" class="ui button opus-orange massive futura">EDIT</a>
                 </div>
             </div>
         </div>
@@ -122,13 +122,15 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Published</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr v-for="definition in store.model.story.definitions">
                             <td>{{definition.name}}</td>
-                            <td>2 min ago</td>
+                        <td>
+                            <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                        </td>
                         </tr>
                     </tbody>
                     
@@ -172,14 +174,13 @@
                 <table class="ui celled table"> 
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Published</th>
+                            <th>Schema</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" v-if="store.role">
-                        <tr v-for="status in store.definition.status">
-                            <td>{{status.name}}</td>
-                            <td>2 min ago</td>
+                    <tbody id="tableBody" v-if="store.definition.schemas">
+                        <tr v-for="schema in store.definition.schemas">
+                            <td>{{schema.name}}</td>
                         </tr>
                     </tbody>                            
                 </table>
@@ -207,14 +208,16 @@
                 <table class="ui celled table"> 
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Published</th>
+                            <th>Status</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" v-if="store.role">
                         <tr v-for="status in store.definition.status">
                             <td>{{status.name}}</td>
-                            <td>2 min ago</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
                         </tr>
                     </tbody>                            
                 </table>
@@ -241,14 +244,18 @@
                 <table class="ui celled table"> 
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Published</th>
+                            <th>State</th>
+                            <th>Next</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" v-if="store.role">
                         <tr v-for="status in store.definition.stateMachine">
-                            <td>{{status.name}}</td>
-                            <td>2 min ago</td>
+                            <td>{{state.status.name}}</td>
+                            <td>{{state.next.name}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
                         </tr>
                     </tbody>                            
                 </table>
@@ -278,14 +285,16 @@
                 <table class="ui celled table"> 
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Published</th>
+                            <th>Role</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr v-for="role in store.model.story.roles">
                             <td>{{role.name}}</td>
-                            <td></td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
                         </tr>
                     </tbody>
                     
@@ -331,12 +340,16 @@
                         <tr>
                             <th>Name</th>
                             <th>Action</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" v-if="store.role">
                         <tr v-for="permissions in store.role.permissions">
                             <td>{{permission.name}}</td>
                             <td>{{permission.action}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
                         </tr>
                     </tbody>                            
                 </table>
@@ -351,7 +364,7 @@
     </div>
 </div>
 <!-- Add Role -->
-<form v-show="showOnAddRole || showOnEditRole" class="ui form">  
+<form v-show="screen('add-role') || screen('edit-role')" class="ui form">  
     <!-- Name Field -->
     <div class="field-row field">
         <div class="ui stackable grid">
@@ -375,19 +388,21 @@
 
 <% define "relationships" %>
 <!-- RELATIONSHIPS  -->
-<div v-show="showOnView" class="field-row field">
+<div v-show="screen('view')" class="field-row field">
     <div class="ui stackable grid">
         <div class="row">
             <div class="six wide computer five wide tablet sixteen wide mobile column">
                 <h2 class="futura opus-teal form-title">RELATIONSHIPS</h2>
-                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/definition">ADD</a>
+                    <a v-show="screen('view')" class="ui button opus-orange massive futura" href="#/add/definition">ADD</a>
             </div>
             <div class="ten wide computer five wide tablet sixteen wide mobile column">
                 <table class="ui celled table"> 
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Published</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -395,6 +410,9 @@
                             <td>{{relationship.name}}</td>
                             <td>{{relationship.source}}</td>
                             <td>{{relationship.target}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
                         </tr>
                     </tbody>   
                 </table>
@@ -403,7 +421,7 @@
     </div>
 </div>
 <!-- Add relationship -->
-<form v-show="showOnAddRelationship || showOnEditRelationship" class="ui form">  
+<form v-show="screen('add-relationship') || screen('edit-relationship')" class="ui form">  
     <!-- Name Field -->
     <div class="field-row field">
         <div class="ui stackable grid">
@@ -426,14 +444,12 @@
 
 <% define "settings" %>
 <!-- SETTINGS  -->
-<div v-show="showOnView" class="field-row field">
+<div v-show="screen('view')" class="field-row field">
     <div class="ui stackable grid">
         <div class="row">
             <div class="six wide computer five wide tablet sixteen wide mobile column">
                 <h2 class="futura opus-teal form-title">SETTINGS</h2>
-
-                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/setting">ADD</a>
-
+                    <a v-show="screen('view')" class="ui button opus-orange massive futura" href="#/add/setting">ADD</a>
             </div>
             <div class="ten wide computer five wide tablet sixteen wide mobile column">
                 <table class="ui celled table"> 
@@ -441,12 +457,16 @@
                         <tr>
                             <th>Name</th>
                             <th>Published</th>
+                            <th>actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr v-for="setting in store.model.story.settings">
                             <td>{{setting.name}}</td>
                             <td>{{setting.value}}</td>
+                            <td>
+                                <a :href="'#/setting/'+setting.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
                         </tr>
                     </tbody>
                     
@@ -457,7 +477,7 @@
 </div>
 
 <!-- Add Setting -->
-<form v-show="showOnAddSetting || showOnEditSetting" class="ui form">  
+<form v-show="screen('add-setting') || screen('edit-setting')" class="ui form">  
 
     <!-- Name Field -->
     <div class="field-row field">
@@ -510,8 +530,6 @@
   </div>
 <% end %>
 
-
-
 <% define "main" %>
 <div id="app" @vue:mounted="init">
   
@@ -545,27 +563,27 @@
                         </div>
                         <div class="eight wide computer seven wide tablet sixteen wide mobile column">
                             
-                            <a :href="'#/view/' + slug" v-show="!showOnView" class="ui button massive futura">BACK</a>
+                            <a :href="'#/view/' + slug" v-show="!screen('view')" class="ui button massive futura">BACK</a>
 
-                            <div @click="fire('story:create')" v-show="showOnCreate" class="ui button opus-orange massive futura">CREATE</div>
+                            <!--STORY-->
+                            <div @click="fire('story:create')" v-show="screen('create')" class="ui button opus-orange massive futura">CREATE</div>
+                            <div v-show="screen('edit')" class="ui button opus-orange massive futura" @click="fire('story:update')">UPDATE</div>
 
-                            <div v-show="showOnEdit" class="ui button opus-orange massive futura" @click="fire('story:update')">UPDATE</div>
+                            <!--ROLE-->
+                            <div v-show="screen('add-role')" class="ui button opus-orange massive futura" @click="fire('role:create')">ADD</div>
+                            <div v-show="screen('edit-role')" class="ui button opus-orange massive futura" @click="fire('role:update')">UPDATE</div>
 
-                            <div v-show="showOnAddRole" class="ui button opus-orange massive futura" @click="fire('role:create')">ADD</div>
+                            <!--DEFINITION-->
+                            <div v-show="screen('add-definition')" class="ui button opus-orange massive futura" @click="fire('definition:create')">ADD</div>
+                            <div v-show="screen('edit-definition')" class="ui button opus-orange massive futura" @click="fire('definition:update')">UPDATE</div>
 
-                            <div v-show="showOnEditRole" class="ui button opus-orange massive futura" @click="fire('role:update')">UPDATE</div>
+                            <!--SETTING-->
+                            <div v-show="screen('add-setting')" class="ui button opus-orange massive futura" @click="fire('setting:create')">ADD</div>
+                            <div v-show="screen('edit-setting')" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
 
-                            <div v-show="showOnAddDefinition" class="ui button opus-orange massive futura" @click="fire('definition:create')">ADD</div>
-
-                            <div v-show="showOnEditDefinition" class="ui button opus-orange massive futura" @click="fire('definition:update')">UPDATE</div>
-
-                            <div v-show="showOnAddSetting" class="ui button opus-orange massive futura" @click="fire('setting:create')">ADD</div>
-
-                            <div v-show="showOnEditSetting" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
-
-                            <div v-show="showOnAddRelationship" class="ui button opus-orange massive futura" @click="fire('relationship:create')">ADD</div>
-
-                            <div v-show="showOnEditRelationship" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
+                            <!--RELATIONSHIP-->
+                            <div v-show="screen('add-relationship')" class="ui button opus-orange massive futura" @click="fire('relationship:create')">ADD</div>
+                            <div v-show="screen('edit-relationship')" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
 
                         </div>
                         <div class="four wide computer four wide tablet column">
@@ -595,134 +613,52 @@
 
 <%define "template-scopes"%>
   <script>
-    const onListRoute = () => {
 
-    }
-    const onCreateRoute = () => {
-        
-    }
-    const onViewRoute = () => {
-        
-    }
-    const onEditRoute = () => {
-        
-    }
-    const onAddDefinitionRoute = () => {
-        
-    }
-    const onEditDefinitionRoute = () => {
-        
-    }
-    const onAddRoleRoute = () => {
-        
-    }
-    const onEditRoleRoute = () => {
-        
-    }
-    const onAddRelationshipRoute = () => {
-        
-    }
-    const onEditRelationshipRoute = () => {
-        
-    }
-    const onAddSettingRoute = () => {
-        
-    }
-    const onEditSettingRoute = () => {
-        
-    }
     const routes = {
         '/': onListRoute,
-        '/stories': onListRoute,
-        '/create': onCreateRoute,
-        '/view/:slug': onViewRoute,
-        '/edit/:slug': onEditRoute,
-        '/definition/add': onAddDefinitionRoute,
-        '/definition/:slug/edit': onEditDefinitionRoute,
-        '/role/add': onAddRoleRoute,
-        '/role/:slug/edit': onEditRoleRoute,
-        '/setting/add': onAddSettingRoute,
-        '/setting/:slug/edit': onEditSettingRoute,
-        '/relationship/add': onAddRelationshipRoute,
-        '/relationship/:slug/edit': onEditRelationshipRoute,
+        '/stories': useRoute('list', onLoadStories),
+        '/create': useRoute('create'),
+        '/:slug /view': useRoute('view', onLoadStory),
+        '/:slug /edit': useRoute('edit', onLoadStory),
+        '/definition/add': useRoute('add-definition'),
+        '/definition/:slug/edit': useRoute('edit-definition', setDefinition),
+        '/role/add': useRoute('add-role'),
+        '/role/:slug/edit': useRoute('edit-role', setRole),
+        '/setting/add': useRoute('add-relationship', setRelationship),
+        '/setting/:slug/edit': useRoute('add-relationship'),
+        '/relationship/add': useRoute('add-setting'),
+        '/relationship/:slug/edit': useRoute('edit-setting', setSetting),
     };
-    const router = Router(routes);
-    router.init();
 
-    function storyScope() {
-        return {
-          store,
-          init() {
+    const subscriptions = {
+        "stories:loaded": setList,
+        "story:loaded": setModel,
+        "story:create": onCreateStory,
+        "story:update": onUpdateStory,
+        "role:create": onAddRole,
+        "role:update": onUpdateRole,
+        "definition:create": onAddDefinition,
+        "definition:update": onUpdateDefinition,
+        "relationship:create": onAddRelationship,
+        "relationship:update": onUpdateRelationship,
+        "setting:create": onAddSetting,
+        "setting:update": onUpdateSetting,
+    };
+
+    const behavior = {
+        routes: routes,
+        subscriptions: subscriptions,
+        init() {
             if (!localStorage.getItem("auth:token")) {
-              window.location.href = "/admin/auth#/login";
+                window.location.href = "/admin/auth#/login";
             }
+        },
+    };
 
-            bus.subscribe('stories:loaded', setList);
-            bus.subscribe('story:loaded', setModel);
-            bus.subscribe('story:create', onCreateStory);
-            bus.subscribe('story:update', onUpdateStory);
-
-            bus.subscribe('role:create', onAddRole);
-            bus.subscribe('role:update', onUpdateRole);
-            bus.subscribe('definition:create', onAddDefinition);
-            bus.subscribe('definition:update', onUpdateDefinition);
-            bus.subscribe('relationship:create', onAddRelationship);
-            bus.subscribe('relationship:update', onUpdateRelationship);
-            bus.subscribe('setting:create', onAddSetting);
-            bus.subscribe('setting:update', onUpdateSetting);
-          },
-
-          // helpers
-          fire(event, data) {
-            bus.publish(event, data);
-          },
-          get slug() {
-            return store.model.story.slug;
-          },
-
-          // routes/screens
-          get showOnList() {
-            return store.view.loading === false && store.view.screen === 'list';
-          },
-          get showOnCreate() {
-            return store.view.loading === false && store.view.screen === 'create';
-          },
-          get showOnView() {
-            return store.view.loading === false && store.view.screen === 'view';
-          },
-          get showOnEdit() {
-            return store.view.loading === false && store.view.screen === 'edit';
-          },
-          get showOnDelete() {
-            return store.view.loading === false && store.view.screen === 'delete';
-          },
-          get showOnAddDefinition() {
-            return store.view.loading === false && store.view.screen === 'add-definition';
-          },
-          get showOnEditDefinition() {
-            return store.view.loading === false && store.view.screen === 'edit-definition';
-          },
-          get showOnAddRelationship() {
-            return store.view.loading === false && store.view.screen === 'add-relationship';
-          },
-          get showOnEditRelationship() {
-            return store.view.loading === false && store.view.screen === 'edit-relationship';
-          },
-          get showOnAddRole() {
-            return store.view.loading === false && store.view.screen === 'add-role';
-          },
-          get showOnEditRole() {
-            return store.view.loading === false && store.view.screen === 'edit-role';
-          },
-          get showOnAddSetting() {
-            return store.view.loading === false && store.view.screen === 'add-setting';
-          },
-          get showOnEditSetting() {
-            return store.view.loading === false && store.view.screen === 'edit-setting';
-          },
-        };
-    }
-    PetiteVue.createApp(storyScope()).mount("#app");
+    const component = new Component(behavior, store);
+    component.subscribe(bus)
+             .route()
+             .mount("#app");
 
     </script>
 <%end%>

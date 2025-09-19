@@ -187,10 +187,10 @@
                             <a v-show="showOnView" href="#/delete" class="ui button opus-pink massive futura">REMOVE ACCOUNT</a>
 
                             <a href="#/view" v-show="showOnEdit" class="ui button massive futura">BACK</a>
-                            <div v-show="showOnEdit" class="ui button opus-orange massive futura" @click="fire('auth:update')">UPDATE</div>
+                            <div v-show="showOnEdit" class="ui button opus-orange massive futura" @click="fire('profile:update')">UPDATE</div>
 
                             <a v-show="showOnDelete" href="#/view" class="ui button massive futura">BACK</a>
-                            <div v-show="showOnDelete" class="ui button opus-pink massive futura" @click="fire('auth:delete')">REMOVE</div>
+                            <div v-show="showOnDelete" class="ui button opus-pink massive futura" @click="fire('profile:delete')">REMOVE</div>
 
                         </div>
                         <div class="four wide computer four wide tablet column">
@@ -208,47 +208,35 @@
 
 <%define "template-scopes"%>
   <script>
+            const onRoute = (action) => {
+                store.view.screen = action ? action : 'view';
+            };
 
-      function profileScope() {
-          const onRoute = (action) => {
-            if (!action) {
-                action = 'view';
-            }
-            store.view.screen = action ? action : 'view';
-          };
-          const routes = {
-            '/': onRoute,
-            '/:action': onRoute,
-          };
-          const router = Router(routes);
-          router.init();
+            const routes = {
+                '/': onRoute,
+                '/:action': onRoute,
+            };
 
-        return {
-          init() {
-            bus.subscribe('auth:loaded', setModel);
-            bus.subscribe('auth:updated', setModel);
+            const subscriptions = {
+                "profile:loaded": setModel,
+                "profile:update": onUpdateProfile,
+                "profile:updated": onLoadProfile,
+                "profile:delete": onDeleteAccount,
+            };
 
-            bus.subscribe('auth:update', onUpdateProfile);
-            bus.subscribe('auth:updated', onLoadProfile);
-
-            bus.subscribe('auth:delete', onDeleteAccount);
-            onLoadProfile();
-          },
-          fire(event) {
-            bus.publish(event);
-          },
-          get showOnView() {
-            return store.view.loading === false && store.view.screen === 'view';
-          },
-          get showOnEdit() {
-            return store.view.loading === false && store.view.screen === 'edit';
-          },
-          get showOnDelete() {
-            return store.view.loading === false && store.view.screen === 'delete';
-          },
-          store,
-        };
-      }
-      PetiteVue.createApp(profileScope()).mount("#app");
+            const behavior = {
+                routes: routes,
+                subscriptions: subscriptions,
+                init() {
+                    if (!localStorage.getItem("auth:token")) {
+                        window.location.href = "/admin/auth#/login";
+                    }
+                    onLoadProfile,
+                },
+            };
+            const component = new Component(behavior, store);
+            component.subscribe(bus)
+                     .route()
+                     .mount("#app");
     </script>
 <%end%>
