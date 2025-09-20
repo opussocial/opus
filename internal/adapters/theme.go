@@ -122,13 +122,13 @@ func (ts *ThemeAdapter) loadTemplateSet(document, module, view string) (*templat
     }
 
     // 2. Module theme overrides (optional)
-    themePath := filepath.Join(ts.basePath, "modules", module, "theme", "theme"+ts.templateExt)
+    themePath := filepath.Join(ts.basePath, "providers", module, "theme", "theme"+ts.templateExt)
     if _, err := os.Stat(themePath); err == nil {
       tpl, _ = tpl.ParseFiles(themePath)
     }
 
     // 3. Specific view template (required)
-    viewPath := filepath.Join(ts.basePath, "modules", module, "theme", view+ts.templateExt)
+    viewPath := filepath.Join(ts.basePath, "providers", module, "theme", view+ts.templateExt)
     tpl, err = tpl.ParseFiles(viewPath)
     if err != nil {
       // TODO: quality err

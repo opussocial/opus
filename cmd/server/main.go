@@ -1,8 +1,8 @@
 package main
 
 import (
-    "os"
-    "fmt"
+    // "os"
+    // "fmt"
     "log"
     "time"
     "context"
@@ -12,7 +12,7 @@ import (
 
     "github.com/joho/godotenv"
 
-    "gitlab.com/pedrokoblitz/opus-go/modules/auth"
+    "gitlab.com/pedrokoblitz/opus-go/providers/auth"
     "gitlab.com/pedrokoblitz/opus-go/services"
 )
 
@@ -22,27 +22,29 @@ func main() {
         log.Fatal("Error loading .env file")
     }
 
-    // Access environment variables
-    port := os.Getenv("APP_PORT")
-    dbURL := os.Getenv("DATABASE_URL")
     debug := os.Getenv("DEBUG")
-    
-    fmt.Printf("Server running on port: %s\n", port)
-    fmt.Printf("Database URL: %s\n", dbURL)
-    fmt.Printf("Debug mode: %s\n", debug)
+    environment := os.Getenv("ENVIRONMENT")
+    port := os.Getenv("APP_PORT")
+    dbUser := os.Getenv("DB_USER")
+    dbPassword := os.Getenv("DB_PASSWORD")
+    dbHost := os.Getenv("DB_HOST")
+    dbPort := os.Getenv("DB_PORT")
 
     resourcesDir := "./resources"
     config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
     if err != nil {
         log.Fatal(err)
     }
+    config.Service.Debug = debug
+    config.Service.HTTP.Port = port
+    config.Service.DSN = dbURL
 
     // Initialize services
     container := services.NewContainer(config)
     hub := services.NewPubSubHub(container)
     httpSvc := services.NewHTTPService(container, hub)
 
-    // Register modules
+    // Register providers
     for _, module := range config.Service.Modules {
         switch module {
         case "auth":
@@ -90,3 +92,77 @@ func main() {
         log.Println("Service shutdown complete")
     }
 }
+
+
+
+
+
+
+
+
+
+package main
+
+import (
+    "fmt"
+    "log"
+    "strconv"
+    
+    "github.com/joho/godotenv"
+)
+
+// type Config struct {
+//     Port        int
+//     DatabaseURL string
+//     Debug       bool
+//     APIKey      string
+//     Environment string
+// }
+
+// func LoadConfig() (*Config, error) {
+//     err := godotenv.Load()
+//     if err != nil {
+//         log.Println("No .env file found, using system environment variables")
+//     }
+
+//     port, _ := strconv.Atoi(getEnv("APP_PORT", "8080"))
+//     debug, _ := strconv.ParseBool(getEnv("DEBUG", "false"))
+
+//     return &Config{
+//         Port:        port,
+//         DatabaseURL: getEnv("DATABASE_URL", ""),
+//         Debug:       debug,
+//         APIKey:      getEnv("API_KEY", ""),
+//         Environment: getEnv("ENVIRONMENT", "development"),
+//     }, nil
+// }
+
+// func getEnv(key, defaultValue string) string {
+//     value := os.Getenv(key)
+//     if value == "" {
+//         return defaultValue
+//     }
+//     return value
+// }
+
+// func main() {
+//     config, err := LoadConfig()
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+
+//     fmt.Printf("Config: %+v\n", config)
+// }
+
+// func loadEnv() error {
+//     env := os.Getenv("GO_ENV")
+//     if env == "" {
+//         env = "development"
+//     }
+    
+//     // Try to load environment-specific file first
+//     godotenv.Load(fmt.Sprintf(".env.%s", env))
+    
+//     // Fall back to default .env file
+//     return godotenv.Load()
+// }

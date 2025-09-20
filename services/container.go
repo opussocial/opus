@@ -16,7 +16,7 @@ type Container struct {
 
 func NewContainer(cfg *ServiceConfig) Container {
     registry := NewActionRegistry()
-	db, err := adapters.NewSQLAdapter(cfg.Dsn())
+	db, err := adapters.NewSQLAdapter(cfg.Service.DSN)
 	if err != nil {
 		log.Fatal("invalid db conf")
 	}

@@ -8,7 +8,7 @@
           <a class="item opus-teal" href="/admin#/stories">Stories</a>
         </div>
         <div id="auth-menu" class="right menu">
-          <a href="/admin/profile#/view" class="item opus-pink">Profile</a>
+          <a href="/profile#/view" class="item opus-pink">Profile</a>
           <span class="item opus-purple" @click="fire('auth:logout')">Logout</span>
         </div>
       </div>
@@ -58,7 +58,7 @@
           setCookie('auth:token', data.token, 1);
           localStorage.setItem('auth:token', data.token);
           store.view.loading = false;
-          window.location.href = "/admin/profile#/view";
+          window.location.href = "/profile#/view";
         },
         error: onError,
       };
@@ -194,7 +194,7 @@
           next: (data) => {
             localStorage.setItem('auth:token', "");
             store.view.loading = false;
-            window.location.href = "/admin/auth#/bye";
+            window.location.href = "/auth#/bye";
           },
           error: onError,
         };

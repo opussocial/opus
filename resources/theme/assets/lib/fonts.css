@@ -13,7 +13,6 @@
 }
 
 
-/*
 @font-face {
   font-family: 'DIN';
   src: url('/assets/fonts/D-DIN-Bold.otf') format('opentype');
@@ -21,6 +20,7 @@
   font-style: normal;
 }
 
+/*
 @font-face {
   font-family: 'Franklin';
   src: url('/assets/fonts/FranklinGothic.ttf') format('truetype');

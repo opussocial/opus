@@ -38,7 +38,8 @@ type Subscriber struct {
 
 type ServiceConfig struct {
     Service struct {
-        Modules []string `yaml:"modules"`
+        Debug    bool   `yaml:"debug"`
+        Modules []string `yaml:"providers"`
         Host    string   `yaml:"host"`
         ResourcesDir    string   `yaml:"resourcesDir"`
         DefaultTemplate    string   `yaml:"defaultTemplate"`
@@ -50,6 +51,7 @@ type ServiceConfig struct {
             JwtSecret  string `yaml:"jwt-secret"`
             SigningKey string `yaml:"signing-key"`
         } `yaml:"config"`
+        DSN string `yaml:"dsn"`
         Database DatabaseConfig `yaml:"database"`
         Smtp adapters.EmailConfig `yaml:"smtp"`
     } `yaml:"service"`
@@ -129,13 +131,14 @@ func (mc *ModuleConfig) Validate() error {
 }
 
 func (s ServiceConfig)	Dsn() string {	
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		"root",
-		"root",
-		"localhost",
-		3307,
-		"opus_test",
-	)
+  return s.Service.DSN
+	// return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	// 	"root",
+	// 	"root",
+	// 	"localhost",
+	// 	3307,
+	// 	"opus_test",
+	// )
 }
 
 type DatabaseConfig struct {

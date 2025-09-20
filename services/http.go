@@ -19,7 +19,7 @@ import (
   "github.com/julienschmidt/httprouter"
   "golang.org/x/time/rate"
 
-  "gitlab.com/pedrokoblitz/opus-go/modules/auth"
+  "gitlab.com/pedrokoblitz/opus-go/providers/auth"
 )
 
 type HTTPService struct {
@@ -125,11 +125,11 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
 
   // TODO: webhook route
 
-  // Register modules
+  // Register providers
   cfg := s.container.Config
-  modules := cfg.Service.Modules
-  for _, module := range modules {
-    modulePath := "./resources/modules/" + module + "/module.yml"
+  providers := cfg.Service.Modules
+  for _, module := range providers {
+    modulePath := "./resources/providers/" + module + "/module.yml"
     moduleConfig, err := LoadModuleConfig(modulePath)
     if err != nil {
       log.Fatal(err)

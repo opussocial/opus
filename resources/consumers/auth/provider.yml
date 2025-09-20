@@ -1,4 +1,4 @@
-module:
+consumer:
   name: auth
   http:
     api:
@@ -12,7 +12,6 @@ module:
           action: auth:login
           method: POST
           pattern: /login
-          # session: true
         - payload: auth:token
           action: auth:logout
           method: POST
@@ -45,7 +44,7 @@ module:
           pattern: /me
           protected: true
     views:
-      prefix: /admin
+      prefix: /
       document: admin
       routes:
         - pattern: /auth
@@ -53,17 +52,14 @@ module:
         - pattern: /profile
           template: profile
   jobs:
-    - name: "daily:cleanup"
-      schedule: "@daily"
-      action: "cleanup"
+    - name: tokens:cleanup
+      schedule: @daily
+      action: tokens:expired
       timeout: 300  # in seconds
-    - name: "hourly_stats"
-      schedule: "0 * * * *"
-      action: "stats:generate"
   subscribers:
-    - topic: "before:action"
-      action: "auth:before"
-    - topic: "after:auth:register"
-      action: "email:welcome"
-    - topic: "after:auth:login"
-      action: "email:login:alert"
+    - topic: before:action
+      action: auth:before
+    - topic: after:auth:register
+      action: email:welcome
+    - topic: after:auth:login
+      action: email:login:alert
