@@ -3,20 +3,3 @@ service:
   host: localhost
   modules:
     - auth
-  config:
-    jwt-secret: 321dçalksdç398103
-    signing-key: d31231ln32k1323j1
-  smtp:
-    host: "smtp.gmail.com"
-    port: 587
-    sender: "opussocialcontent@gmail.com"
-    pass: "nhrk vgjq oeht szyf"
-  database:
-    driver: mysql
-    host: localhost
-    user: root
-    password: root
-    database: opus_test
-    port: 3307
-  http:
-    port: 8080

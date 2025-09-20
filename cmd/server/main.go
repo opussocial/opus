@@ -1,7 +1,8 @@
 package main
 
 import (
-    // "fmt"
+    "os"
+    "fmt"
     "log"
     "time"
     "context"
@@ -9,11 +10,26 @@ import (
     "syscall"
     "os/signal"
 
+    "github.com/joho/godotenv"
+
     "gitlab.com/pedrokoblitz/opus-go/modules/auth"
     "gitlab.com/pedrokoblitz/opus-go/services"
 )
 
 func main() {
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Access environment variables
+    port := os.Getenv("APP_PORT")
+    dbURL := os.Getenv("DATABASE_URL")
+    debug := os.Getenv("DEBUG")
+    
+    fmt.Printf("Server running on port: %s\n", port)
+    fmt.Printf("Database URL: %s\n", dbURL)
+    fmt.Printf("Debug mode: %s\n", debug)
 
     resourcesDir := "./resources"
     config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
