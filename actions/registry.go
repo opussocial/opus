@@ -2,20 +2,18 @@ package actions
 
 import (
 	"sync"
-	// "context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
 )
 
 type ActionRegistry struct {
 	actionRegistry  map[string]ActionFunc
-	payloadRegistry map[string]func() payloads.Payload
+	payloadRegistry map[string]func() Payload
 	regMu           sync.RWMutex
 }
 
 func NewActionRegistry() *ActionRegistry {
 	return &ActionRegistry{
 		actionRegistry:  make(map[string]ActionFunc),
-		payloadRegistry: make(map[string]func() payloads.Payload),
+		payloadRegistry: make(map[string]func() Payload),
 	}
 }
 
@@ -31,7 +29,7 @@ func (r *ActionRegistry) RegisterAction(name string, fn ActionFunc) {
 }
 
 // Register binds a string name to a payload constructor
-func (r *ActionRegistry) RegisterPayload(name string, ctor func() payloads.Payload) {
+func (r *ActionRegistry) RegisterPayload(name string, ctor func() Payload) {
 	r.regMu.Lock()
 	defer r.regMu.Unlock()
 	r.payloadRegistry[name] = ctor
@@ -46,7 +44,7 @@ func (r *ActionRegistry) ResolveAction(name string) (ActionFunc, bool) {
 }
 
 // ResolvePayload retrieves a payload constructor by name
-func (r *ActionRegistry) ResolvePayload(name string) (func() payloads.Payload, bool) {
+func (r *ActionRegistry) ResolvePayload(name string) (func() Payload, bool) {
 	r.regMu.RLock()
 	defer r.regMu.RUnlock()
 	ctor, ok := r.payloadRegistry[name]

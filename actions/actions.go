@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type Executable interface {
@@ -14,23 +13,23 @@ type Executable interface {
 
 type Action struct {
 	name    string
-	payload payloads.Payload
-	adapter interface{}
+	payload Payload
+	container Container
 	execute ActionFunc
 }
 
-type ActionFunc func(p payloads.Payload, adapter interface{}) error
+type ActionFunc func(p Payload, container Container) error
 
 func NewAction(
 	name string,
-	payload payloads.Payload,
-	adapter interface{},
+	payload Payload,
+	container Container,
 	execute ActionFunc,
 ) *Action {
 	return &Action{
 		name:    name,
 		payload: payload,
-		adapter: adapter,
+		container: container,
 		execute: execute,
 	}
 }
@@ -38,7 +37,7 @@ func NewAction(
 func (a *Action) Execute() error {
 	quality.LogStart(a.name, a.payload)
 
-	err := a.execute(a.payload, a.adapter)
+	err := a.execute(a.payload, a.container)
 	if err != nil {
 		quality.LogError(a.name, err)
 		return err

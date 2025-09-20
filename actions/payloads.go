@@ -1,9 +1,9 @@
-package payloads
+package actions
 
 import (
 	"time"
-    "net/http"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"	
+	"net/http"
+	"gitlab.com/pedrokoblitz/opus-go/quality"	
 )
 
 

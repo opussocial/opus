@@ -11,7 +11,7 @@ import (
     "html/template"
     "path/filepath"
     "golang.org/x/sync/singleflight"
-    "gitlab.com/pedrokoblitz/opus-go/internal/quality"
+    "gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 // ThemeAdapter handles template loading and rendering

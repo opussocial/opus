@@ -1,0 +1,39 @@
+package elements
+
+import (
+	"context"
+	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
+	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+)
+
+type ProfileRelationship struct {
+	ID                  uint `json:"id"`
+	User               string `json:"user"`
+	UserID             uint `json:"userID"`
+	Role               string `json:"role"`
+	RoleID             uint `json:"roleID"`
+	ProfileElement		string `json:"profileElement"`
+	ProfileElementID    uint `json:"profileElementID"`
+}
+
+func (p *ProfileRelationship) Validate() error {
+	if p.UserID == 0 {
+        return quality.ErrValidation.WithDetail("user is required")
+	} 
+	return nil
+}
+
+func (p *ProfileRelationship) Process() error {
+	return nil
+}
+
+func CreateProfileRelationshipAction(p payloads.Payload, adapter interface{}) error {
+	store := NewProfileRelationshipStore(adapter.(adapters.DatabaseAdapter))
+	return store.Create(context.Background(), p)
+}
+
+func DeleteProfileRelationshipAction(p payloads.Payload, adapter interface{}) error {
+	store := NewProfileRelationshipStore(adapter.(adapters.DatabaseAdapter))
+	return store.Delete(context.Background(), p)
+}
