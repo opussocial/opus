@@ -1,4 +1,6 @@
 /.env
+/.github
+/.specify
 /Dockerfile
 /docker-compose-test.yml
 /output.sh
