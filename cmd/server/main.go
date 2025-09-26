@@ -1,79 +1,166 @@
 package main
 
 import (
-    // "fmt"
-    "log"
-    "time"
     "context"
+    "log"
     "net/http"
-    "syscall"
     "os/signal"
+    "syscall"
+    "time"
 
+    "gitlab.com/pedrokoblitz/opus-go/actions"
     "gitlab.com/pedrokoblitz/opus-go/modules/auth"
     "gitlab.com/pedrokoblitz/opus-go/modules/story"
     "gitlab.com/pedrokoblitz/opus-go/services"
 )
 
 func main() {
-
     resourcesDir := "./resources"
     config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Failed to load service config:", err)
     }
 
-    // Initialize services
-    container := services.NewContainer(config)
+    // Initialize container with proper error handling
+    container, err := services.NewContainer(config)
+    if err != nil {
+        log.Fatal("Failed to initialize container:", err)
+    }
+    defer func() {
+        if err := container.Close(); err != nil {
+            log.Printf("Error closing container: %v", err)
+        }
+    }()
+
+    // Initialize services using the container
     hub := services.NewPubSubHub(container)
     httpSvc := services.NewHTTPService(container, hub)
 
-    // Register modules
-    for _, module := range config.Service.Modules {
+    // Register modules using type-safe accessors
+    for _, module := range container.Config().Service.Modules {
         switch module {
         case "auth":
-            auth.Register(container.Registry)
+            auth.Register(container.Registry())
         case "story":
-            story.Register(container.Registry)
+            story.Register(container.Registry())
+        default:
+            log.Printf("Warning: Unknown module '%s'", module)
         }
     }
 
-    // Create context for shutdown
+    // Create context for graceful shutdown
     shutdownCtx, stop := signal.NotifyContext(context.Background(), 
         syscall.SIGINT, syscall.SIGTERM)
     defer stop()
 
+    // Start HTTP server in goroutine
+    serverErr := make(chan error, 1)
     go func() {
-        log.Printf("Starting HTTP server on :%d", config.Service.HTTP.Port)
+        log.Printf("Starting HTTP server on :%d", container.Config().Service.HTTP.Port)
         if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
-            log.Printf("HTTP service failed: %v", err)
-            stop() // Trigger shutdown if HTTP fails
+            serverErr <- err
+            stop() // Trigger shutdown if HTTP server fails to start
         }
     }()
 
-    // Wait for shutdown signal
-    <-shutdownCtx.Done()
-    log.Println("Shutdown signal received")
+    // Wait for shutdown signal or server error
+    select {
+    case <-shutdownCtx.Done():
+        log.Println("Shutdown signal received")
+    case err := <-serverErr:
+        log.Printf("HTTP server failed: %v", err)
+    }
 
-    // Start graceful shutdown with timeout
-    gracefulCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    // Perform graceful shutdown with timeout
+    gracefulShutdown(container, httpSvc)
+}
+
+func gracefulShutdown(container *services.Container, httpSvc *services.HTTPService) {
+    log.Println("Starting graceful shutdown...")
+    
+    // Create shutdown context with timeout
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
-    // Shutdown HTTP server
+    // Shutdown HTTP server first (stop accepting new requests)
     log.Println("Shutting down HTTP server...")
-    if err := httpSvc.Shutdown(gracefulCtx); err != nil {
-        log.Printf("HTTP server shutdown error: %v", err)
+    if err := httpSvc.Shutdown(shutdownCtx); err != nil {
+        if err == context.DeadlineExceeded {
+            log.Println("HTTP server shutdown timeout - forcing close")
+        } else {
+            log.Printf("HTTP server shutdown error: %v", err)
+        }
     } else {
         log.Println("HTTP server stopped gracefully")
     }
 
-    // Close database connection
-    log.Println("Closing database connection...")
-    db := container.DB
-    if err := db.Close(); err != nil {
-        log.Printf("Database close error: %v", err)
+    // Container close will handle database and other services
+    log.Println("Closing container services...")
+    if err := container.Close(); err != nil {
+        log.Printf("Container close error: %v", err)
     } else {
-        log.Println("Database connection closed")
+        log.Println("All services closed successfully")
     }
 
     log.Println("Service shutdown complete")
+}
+
+// Alternative simpler version if you prefer a more concise approach:
+func mainSimple() {
+    resourcesDir := "./resources"
+    config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
+    if err != nil {
+        log.Fatal("Failed to load service config:", err)
+    }
+
+    // Initialize container
+    container, err := services.NewContainer(config)
+    if err != nil {
+        log.Fatal("Failed to initialize container:", err)
+    }
+    defer container.Close()
+
+    // Setup services
+    hub := services.NewPubSubHub(container)
+    httpSvc := services.NewHTTPService(container, hub)
+
+    // Register modules
+    registerModules(container)
+
+    // Run server with graceful shutdown
+    runServerWithShutdown(container, httpSvc)
+}
+
+func registerModules(container *services.Container) {
+    for _, module := range container.Config().Service.Modules {
+        switch module {
+        case "auth":
+            auth.Register(container.Registry())
+        case "story":
+            story.Register(container.Registry())
+        }
+    }
+}
+
+func runServerWithShutdown(container *services.Container, httpSvc *services.HTTPService) {
+    ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+    defer stop()
+
+    // Start server
+    go func() {
+        log.Printf("Server starting on port :%d", container.Config().Service.HTTP.Port)
+        if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
+            log.Fatalf("Server failed: %v", err)
+        }
+    }()
+
+    <-ctx.Done()
+    log.Println("Shutting down...")
+
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    if err := httpSvc.Shutdown(shutdownCtx); err != nil {
+        log.Printf("Shutdown error: %v", err)
+    }
 }

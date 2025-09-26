@@ -2,9 +2,8 @@ package story
 
 import (
 	"context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 
@@ -21,10 +20,10 @@ const (
  **/
 
 type GraphRelationshipStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewGraphRelationshipStore(adapter adapters.DatabaseAdapter) *GraphRelationshipStore {
+func NewGraphRelationshipStore(adapter actions.DatabaseAdapter) *GraphRelationshipStore {
 	return &GraphRelationshipStore{adapter: adapter}
 }
 

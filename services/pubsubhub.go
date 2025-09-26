@@ -8,9 +8,8 @@ import (
   "log"
   "sync"
 
-  "gitlab.com/pedrokoblitz/opus-go/internal/actions"
-  "gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-  "gitlab.com/pedrokoblitz/opus-go/internal/quality"
+  "gitlab.com/pedrokoblitz/opus-go/actions"
+  "gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type PubSubHub struct {
@@ -87,7 +86,7 @@ func (a *PubSubHub) Subscribe(topicName, actionName string, opts SubscriberOptio
   }
 
   // Resolve action from registry
-  registry := a.container.Registry
+  registry := a.container.Registry()
   actionFunc, ok := registry.ResolveAction(actionName)
   if !ok {
     return quality.ErrInvalidAction.WithDetail(fmt.Sprintf("action %s not found", actionName))
@@ -180,7 +179,7 @@ func (a *PubSubHub) processMessage(msg Message, sub HubSubscriber) {
 
   for attempt := 1; attempt <= opts.RetryPolicy.MaxAttempts; attempt++ {
     // Create action with the resolved handler
-    db := a.container.DB
+    db := a.container.DB()
     action := actions.NewAction(
       fmt.Sprintf("pubsub:%s:%s", msg.Topic, sub.id),
       msg.Payload,

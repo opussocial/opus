@@ -2,21 +2,20 @@ package marketing
 
 import (
 	"time"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+
+	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
 
 type History struct {
-	ID uint
+	ID          uint
 	OperationID uint
-	Scope string
-	ExecutedAt time.Time
+	Scope       string
+	ExecutedAt  time.Time
 }
 
 func (h *History) Validate() error { return nil }
-func (h *History) Process() error { return nil }
+func (h *History) Process() error  { return nil }
 
-//
-func CreateHistoryAction(p payloads.Payload, adapter interface{}) error { return nil }
+func CreateHistoryAction(p actions.Payload, container actions.Container) error { return nil }
 
-//
-func DeleteHistoryAction(p payloads.Payload, adapter interface{}) error { return nil }
+func DeleteHistoryAction(p actions.Payload, container actions.Container) error { return nil }

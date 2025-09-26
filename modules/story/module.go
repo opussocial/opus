@@ -3,8 +3,8 @@ package story
 import (
 	"strings"
 	"unicode"
-	"gitlab.com/pedrokoblitz/opus-go/internal/actions"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type BaseRequest struct {

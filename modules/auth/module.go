@@ -2,14 +2,13 @@ package auth
 
 import (
 	// "fmt"
-	"time"
 	"math/rand"
+	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/actions"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
 
 func Register(registry *actions.ActionRegistry) {
@@ -37,13 +36,13 @@ func Register(registry *actions.ActionRegistry) {
 }
 
 type AuthBasePayload struct {
-    ID    uint   `json:"id"`
-    UserID    uint   `json:"userId"`
-    Email string `json:"email"`
-    Token string `json:"token"`
-    Password string `json:"password" yaml:"password"`
-    InputPassword string
-    ExpiresAt time.Time `json:"expires_at"`		
+	ID            uint   `json:"id"`
+	UserID        uint   `json:"userId"`
+	Email         string `json:"email"`
+	Token         string `json:"token"`
+	Password      string `json:"password" yaml:"password"`
+	InputPassword string
+	ExpiresAt     time.Time `json:"expires_at"`
 }
 
 // type AuthBaseRequest struct {}
@@ -60,7 +59,7 @@ func EncryptPassword(password string) (string, error) {
 }
 
 func CheckPassword(password, hashedPassword string) error {
-    return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
 type Claims struct {
@@ -108,16 +107,16 @@ func ParseBearerToken(tokenString string) (*Claims, error) {
 }
 
 func GenerateCSRFToken() string {
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "exp": time.Now().Add(1 * time.Hour).Unix(),
-    })
-    tokenString, _ := token.SignedString([]byte("your-secret-key"))
-    return tokenString
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().Add(1 * time.Hour).Unix(),
+	})
+	tokenString, _ := token.SignedString([]byte("your-secret-key"))
+	return tokenString
 }
 
 func ParseCSRFToken(tokenString string) bool {
-    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-        return []byte("your-secret-key"), nil
-    })
-    return err == nil && token.Valid
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("your-secret-key"), nil
+	})
+	return err == nil && token.Valid
 }

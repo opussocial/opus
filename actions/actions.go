@@ -12,10 +12,10 @@ type Executable interface {
 }
 
 type Action struct {
-	name    string
-	payload Payload
+	name      string
+	payload   Payload
 	container Container
-	execute ActionFunc
+	execute   ActionFunc
 }
 
 type ActionFunc func(p Payload, container Container) error
@@ -27,10 +27,10 @@ func NewAction(
 	execute ActionFunc,
 ) *Action {
 	return &Action{
-		name:    name,
-		payload: payload,
+		name:      name,
+		payload:   payload,
 		container: container,
-		execute: execute,
+		execute:   execute,
 	}
 }
 

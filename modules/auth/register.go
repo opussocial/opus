@@ -1,20 +1,21 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"context"
+
 	// "database/sql"
+	"net/http"
 	"net/mail"
-    "net/http"
 	"unicode/utf8"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type SignUp struct {
-    AuthBasePayload
+	AuthBasePayload
 }
 
 func (p *SignUp) FromRequest(r *http.Request) error {
@@ -44,8 +45,8 @@ func (p *SignUp) Process() error {
 	return nil
 }
 
-func ConfirmAction(p payloads.Payload, adapter interface{}) error {
-	store := NewSignUpStore(adapter.(adapters.DatabaseAdapter))
+func ConfirmAction(p actions.Payload, container actions.Container) error {
+	store := NewSignUpStore(container.DB())
 	err := store.Confirm(context.Background(), p)
 	if err != nil {
 		return err
@@ -57,9 +58,9 @@ func ConfirmAction(p payloads.Payload, adapter interface{}) error {
 	return nil
 }
 
-func SignUpAction(p payloads.Payload, adapter interface{}) error {
+func SignUpAction(p actions.Payload, container actions.Container) error {
 	var err error
-	store := NewSignUpStore(adapter.(adapters.DatabaseAdapter))
+	store := NewSignUpStore(container.DB())
 	err = p.Process()
 	if err != nil {
 		return err
@@ -71,10 +72,10 @@ func SignUpAction(p payloads.Payload, adapter interface{}) error {
 	return store.CreateConfirmationToken(context.Background(), p)
 }
 
-func WelcomeEmailAction(p payloads.Payload, adapter interface{}) error {
+func WelcomeEmailAction(p actions.Payload, container actions.Container) error {
 	emailService := adapter.(*adapters.EmailAdapter)
-    signUp := p.(*SignUp)
-    message := fmt.Sprintf(`
+	signUp := p.(*SignUp)
+	message := fmt.Sprintf(`
         <html>
         <body>
             <h1>Welcome, %s!</h1>
@@ -84,10 +85,10 @@ func WelcomeEmailAction(p payloads.Payload, adapter interface{}) error {
         </html>
     `, "username")
 
-    err := emailService.SendHtmlEmail(signUp.Email, "Welcome to Opus", message)
-    if err != nil {
-        log.Fatalf("Failed to send welcome email: %v", err)
-    }
-    fmt.Println("Welcome email sent successfully")
-    return nil
+	err := emailService.SendHtmlEmail(signUp.Email, "Welcome to Opus", message)
+	if err != nil {
+		log.Fatalf("Failed to send welcome email: %v", err)
+	}
+	fmt.Println("Welcome email sent successfully")
+	return nil
 }

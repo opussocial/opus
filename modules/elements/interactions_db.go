@@ -2,9 +2,8 @@ package elements
 
 import (
 	"context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 /**
@@ -36,10 +35,10 @@ const (
 )
 
 type InteractionStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewInteractionStore(adapter adapters.DatabaseAdapter) *InteractionStore {
+func NewInteractionStore(adapter actions.DatabaseAdapter) *InteractionStore {
 	return &InteractionStore{adapter: adapter}
 }
 
@@ -92,10 +91,10 @@ const (
 )
 
 type KeywordStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewKeywordStore(adapter adapters.DatabaseAdapter) *KeywordStore {
+func NewKeywordStore(adapter actions.DatabaseAdapter) *KeywordStore {
 	return &KeywordStore{adapter: adapter}
 }
 

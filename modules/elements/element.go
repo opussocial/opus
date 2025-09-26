@@ -1,45 +1,45 @@
 package elements
 
 import (
-	"time"
 	"context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
+	"time"
+
+	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/modules/story"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type Element struct {
-	ID       uint   `json:"id"`
-	Slug     string `json:"slug"`
+	ID   uint   `json:"id"`
+	Slug string `json:"slug"`
 
-	Level    uint   `json:"level"`
-	Active   bool   `json:"active"`
-	Locked   bool   `json:"locked"`
+	Level  uint `json:"level"`
+	Active bool `json:"active"`
+	Locked bool `json:"locked"`
 
-	ParentID *uint  `json:"parentID,omitempty"`
-	Parent *Element  `json:"parent,omitempty"`
-	Children []Element  `json:"children,omitempty"`
+	ParentID *uint     `json:"parentID,omitempty"`
+	Parent   *Element  `json:"parent,omitempty"`
+	Children []Element `json:"children,omitempty"`
 
-	DefinitionID uint           `json:"definitionID"`
-	DefinitionModel   story.Definition `json:"definition"`
-	Definition   string `json:"definition"`
-	StatusID uint           `json:"statusID"`
-	Status string           `json:"status"`
-	StatusModel   story.DefinitionStatus `json:"statusModel"`
+	DefinitionID    uint                   `json:"definitionID"`
+	DefinitionModel story.Definition       `json:"definition"`
+	Definition      string                 `json:"definition"`
+	StatusID        uint                   `json:"statusID"`
+	Status          string                 `json:"status"`
+	StatusModel     story.DefinitionStatus `json:"statusModel"`
 
-	CreatedByProfile    string          `json:"createdByProfile"`
-	CreatedByProfileID    uint          `json:"createdByProfileID"`
-	CreatedByProfileModel      *Element          `json:"createdByProfileModel"`
+	CreatedByProfile      string   `json:"createdByProfile"`
+	CreatedByProfileID    uint     `json:"createdByProfileID"`
+	CreatedByProfileModel *Element `json:"createdByProfileModel"`
 
 	// SCHEMAS
-	File          *FileSchema         `json:"file,omitempty"`
-	Text     	  *TextSchema     `json:"text,omitempty"`
-	Person        *PersonSchema      `json:"person,omitempty"`
-	ContactPoint  *ContactPointSchema      `json:"contactPoint,omitempty"`
-	PostalAddress *PostalAddressSchema      `json:"postalAddress,omitempty"`
-	TimeTracking  *TimeTrackingSchema `json:"timeTracking,omitempty"`
-	WebResource   *WebResourceSchema      `json:"webResource,omitempty"`
+	File          *FileSchema          `json:"file,omitempty"`
+	Text          *TextSchema          `json:"text,omitempty"`
+	Person        *PersonSchema        `json:"person,omitempty"`
+	ContactPoint  *ContactPointSchema  `json:"contactPoint,omitempty"`
+	PostalAddress *PostalAddressSchema `json:"postalAddress,omitempty"`
+	TimeTracking  *TimeTrackingSchema  `json:"timeTracking,omitempty"`
+	WebResource   *WebResourceSchema   `json:"webResource,omitempty"`
 
 	// END SCHEMAS
 	Interactions []Interaction `json:"interactions,omitempty"`
@@ -126,13 +126,13 @@ on:"dateCreated,omitempty"`
 
 func (p *Element) Validate() error {
 	if p.Name == "" {
-        return quality.ErrValidation.WithDetail("name is required")
-	} 
-	if p.DefinitionID == 0 && p.DefinitionModel.ID == 0 && p.Definition == "" {
-        return quality.ErrValidation.WithDetail("definition is required")
+		return quality.ErrValidation.WithDetail("name is required")
 	}
-	if  p.CreatedByProfileID == 0 {
-        return quality.ErrValidation.WithDetail("profile is required")
+	if p.DefinitionID == 0 && p.DefinitionModel.ID == 0 && p.Definition == "" {
+		return quality.ErrValidation.WithDetail("definition is required")
+	}
+	if p.CreatedByProfileID == 0 {
+		return quality.ErrValidation.WithDetail("profile is required")
 	}
 	return nil
 }
@@ -141,12 +141,12 @@ func (p *Element) Process() error {
 	return nil
 }
 
-func CreateElementAction(p payloads.Payload, adapter interface{}) error {
-	store := NewElementStore(adapter.(adapters.DatabaseAdapter))
+func CreateElementAction(p actions.Payload, container actions.Container) error {
+	store := NewElementStore(container.DB())
 	return store.Create(context.Background(), p)
 }
 
-func DeleteElementAction(p payloads.Payload, adapter interface{}) error {
-	store := NewElementStore(adapter.(adapters.DatabaseAdapter))
+func DeleteElementAction(p actions.Payload, container actions.Container) error {
+	store := NewElementStore(container.DB())
 	return store.Delete(context.Background(), p)
 }

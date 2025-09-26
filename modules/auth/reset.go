@@ -3,17 +3,18 @@ package auth
 import (
 	// "fmt"
 	"context"
+	"net/http"
 	"net/mail"
-    "net/http"
+
 	// "database/sql"
 	// "unicode/utf8"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type ResetRequest struct {
-    AuthBasePayload
+	AuthBasePayload
 }
 
 func (p *ResetRequest) FromRequest(r *http.Request) error {
@@ -31,14 +32,13 @@ func (p *ResetRequest) Validate() error {
 	return nil
 }
 
-
 func (p *ResetRequest) Process() error {
 	p.Token = GenerateRandomString(16)
 	return nil
 }
 
 type Reset struct {
-    AuthBasePayload
+	AuthBasePayload
 }
 
 func (p *Reset) FromRequest(r *http.Request) error {
@@ -60,9 +60,8 @@ func (p *Reset) Process() error {
 	return err
 }
 
-
-func ResetPasswordAction(p payloads.Payload, adapter interface{}) error {
-	store := NewResetStore(adapter.(adapters.DatabaseAdapter))
+func ResetPasswordAction(p actions.Payload, container actions.Container) error {
+	store := NewResetStore(container.DB())
 	err := p.Process()
 	if err != nil {
 		return err
@@ -74,8 +73,8 @@ func ResetPasswordAction(p payloads.Payload, adapter interface{}) error {
 	return store.ResetPassword(context.Background(), p)
 }
 
-func RequestPasswordResetAction(p payloads.Payload, adapter interface{}) error {
-	store := NewResetStore(adapter.(adapters.DatabaseAdapter))
+func RequestPasswordResetAction(p actions.Payload, container actions.Container) error {
+	store := NewResetStore(container.DB())
 	err := p.Process()
 	if err != nil {
 		return err

@@ -8,9 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 const (
@@ -23,7 +22,7 @@ const (
 	PermissionActionString  = "test:create"
 )
 
-func DoCreateStory(t *testing.T, adapter adapters.DatabaseAdapter) (uint, error) {
+func DoCreateStory(t *testing.T, adapter actions.DatabaseAdapter) (uint, error) {
 	var err error
 	
 	emptyPayload := &Story{}
@@ -72,7 +71,7 @@ func DoCreateStory(t *testing.T, adapter adapters.DatabaseAdapter) (uint, error)
 	return validPayload.ID, err
 }
 
-func DoCreateDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreateDefinition(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Definition{}
@@ -99,7 +98,7 @@ func DoCreateDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID 
 }
 
 
-func DoCreateBlogDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreateBlogDefinition(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Definition{}
@@ -125,7 +124,7 @@ func DoCreateBlogDefinition(t *testing.T, adapter adapters.DatabaseAdapter, stor
 	return validPayload.ID, err
 }
 
-func DoCreatePageDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreatePageDefinition(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Definition{}
@@ -152,7 +151,7 @@ func DoCreatePageDefinition(t *testing.T, adapter adapters.DatabaseAdapter, stor
 }
 
 
-func DoCreatePostDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreatePostDefinition(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Definition{}
@@ -178,7 +177,7 @@ func DoCreatePostDefinition(t *testing.T, adapter adapters.DatabaseAdapter, stor
 	return validPayload.ID, err
 }
 
-func DoCreateProfileDefinition(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreateProfileDefinition(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Definition{}
@@ -205,7 +204,7 @@ func DoCreateProfileDefinition(t *testing.T, adapter adapters.DatabaseAdapter, s
 }
 
 
-func DoCreateRole(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) (uint, error) {
+func DoCreateRole(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) (uint, error) {
 	var err error
 	
 	emptyPayload := &Role{}
@@ -225,7 +224,7 @@ func DoCreateRole(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) 
 	return validPayload.ID, err
 }
 
-func DoCreateGraphRelationship(t *testing.T, adapter adapters.DatabaseAdapter) (uint, error) {
+func DoCreateGraphRelationship(t *testing.T, adapter actions.DatabaseAdapter) (uint, error) {
 	var err error
 	
 	emptyPayload := &GraphRelationship{}
@@ -245,7 +244,7 @@ func DoCreateGraphRelationship(t *testing.T, adapter adapters.DatabaseAdapter) (
 	return validPayload.ID, err
 }
 
-func DoDeleteGraphRelationship(t *testing.T, adapter adapters.DatabaseAdapter, relationshipID uint) error {
+func DoDeleteGraphRelationship(t *testing.T, adapter actions.DatabaseAdapter, relationshipID uint) error {
 	var err error
 	
 	emptyPayload := &payloads.DefaultID{}
@@ -263,7 +262,7 @@ func DoDeleteGraphRelationship(t *testing.T, adapter adapters.DatabaseAdapter, r
 	return err
 }
 
-func DoDeleteRole(t *testing.T, adapter adapters.DatabaseAdapter, roleID uint) error {
+func DoDeleteRole(t *testing.T, adapter actions.DatabaseAdapter, roleID uint) error {
 	var err error
 	
 	emptyPayload := &payloads.DefaultID{}
@@ -281,7 +280,7 @@ func DoDeleteRole(t *testing.T, adapter adapters.DatabaseAdapter, roleID uint) e
 	return err
 }
 
-func DoDeleteDefinition(t *testing.T, adapter adapters.DatabaseAdapter, definitionID uint) error {
+func DoDeleteDefinition(t *testing.T, adapter actions.DatabaseAdapter, definitionID uint) error {
 	var err error
 	
 	emptyPayload := &payloads.DefaultID{}
@@ -299,7 +298,7 @@ func DoDeleteDefinition(t *testing.T, adapter adapters.DatabaseAdapter, definiti
 	return err
 }
 
-func DoDeleteStory(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint) error {
+func DoDeleteStory(t *testing.T, adapter actions.DatabaseAdapter, storyID uint) error {
 	var err error
 	
 	emptyPayload := &payloads.DefaultID{}
@@ -318,7 +317,7 @@ func DoDeleteStory(t *testing.T, adapter adapters.DatabaseAdapter, storyID uint)
 }
 
 // cleanupTestData removes any existing test data
-func cleanupTestData(t *testing.T, adapter adapters.DatabaseAdapter) {
+func cleanupTestData(t *testing.T, adapter actions.DatabaseAdapter) {
 	// Clean up in correct order to respect foreign key constraints
 	queries := []string{
 		"DELETE FROM graph_relationships",

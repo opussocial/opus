@@ -3,9 +3,8 @@ package story
 import (
 	"context"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 const (
@@ -27,10 +26,10 @@ const (
  **/
 
 type SettingStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewSettingStore(adapter adapters.DatabaseAdapter) *SettingStore {
+func NewSettingStore(adapter actions.DatabaseAdapter) *SettingStore {
 	return &SettingStore{adapter: adapter}
 }
 

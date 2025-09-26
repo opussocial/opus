@@ -4,9 +4,8 @@ import (
 	"time"
 	"context"
 	"database/sql"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
 
 const (
@@ -16,10 +15,10 @@ const (
 )
 
 type LoginStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewLoginStore(adapter adapters.DatabaseAdapter) *LoginStore {
+func NewLoginStore(adapter actions.DatabaseAdapter) *LoginStore {
 	return &LoginStore{adapter: adapter}
 }
 

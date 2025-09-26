@@ -1,56 +1,58 @@
 package auth
 
 import (
-	"fmt"
 	"context"
+	"fmt"
+
 	// "strconv"
 	"encoding/json"
+	"net/http"
 	"net/mail"
-    "net/http"
+
 	// "database/sql"
 	"time"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type User struct {
-    AuthBasePayload
+	AuthBasePayload
 	CreatedAt time.Time
-	UpdatedAt time.Time	
+	UpdatedAt time.Time
 }
 
 // MarshalJSON implements json.Marshaler - controls what gets output to JSON
 func (u User) MarshalJSON() ([]byte, error) {
-    // Define exactly what fields you want in the output
-    type userJson struct {
-        ID    uint   `json:"id"`
-        Email string `json:"email"`
-        // Token is intentionally omitted from JSON output
-    }
-    
-    return json.Marshal(userJson{
-        ID:    u.ID,
-        Email: u.Email,
-    })
+	// Define exactly what fields you want in the output
+	type userJson struct {
+		ID    uint   `json:"id"`
+		Email string `json:"email"`
+		// Token is intentionally omitted from JSON output
+	}
+
+	return json.Marshal(userJson{
+		ID:    u.ID,
+		Email: u.Email,
+	})
 }
 
 // UnmarshalJSON implements json.Unmarshaler - controls what gets read from JSON
 func (u *User) UnmarshalJSON(data []byte) error {
-    // Define what fields you accept from input
-    type userInput struct {
-        Email string `json:"email"`
-        // ID and Token are ignored from input
-    }
-    
-    var input userInput
-    if err := json.Unmarshal(data, &input); err != nil {
-        return err
-    }
-    
-    u.Email = input.Email
-    // u.ID and u.Token remain unchanged (or set to defaults)
-    return nil
+	// Define what fields you accept from input
+	type userInput struct {
+		Email string `json:"email"`
+		// ID and Token are ignored from input
+	}
+
+	var input userInput
+	if err := json.Unmarshal(data, &input); err != nil {
+		return err
+	}
+
+	u.Email = input.Email
+	// u.ID and u.Token remain unchanged (or set to defaults)
+	return nil
 }
 
 func (p *User) FromRequest(r *http.Request) error {
@@ -87,17 +89,17 @@ func (p *User) Process() error {
 	return nil
 }
 
-func ShowUserAction(p payloads.Payload, adapter interface{}) error {
-	store := NewUserStore(adapter.(adapters.DatabaseAdapter))
+func ShowUserAction(p actions.Payload, container actions.Container) error {
+	store := NewUserStore(container.DB())
 	return store.GetByID(context.Background(), p)
 }
 
-func UpdateUserAction(p payloads.Payload, adapter interface{}) error {
-	store := NewUserStore(adapter.(adapters.DatabaseAdapter))
+func UpdateUserAction(p actions.Payload, container actions.Container) error {
+	store := NewUserStore(container.DB())
 	return store.UpdateUser(context.Background(), p)
 }
 
-func RemoveAccountAction(p payloads.Payload, adapter interface{}) error {
-	store := NewUserStore(adapter.(adapters.DatabaseAdapter))
+func RemoveAccountAction(p actions.Payload, container actions.Container) error {
+	store := NewUserStore(container.DB())
 	return store.RemoveAccount(context.Background(), p)
 }

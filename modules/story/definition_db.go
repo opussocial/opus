@@ -5,9 +5,8 @@ import (
 	"strings"
 	"context"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 
@@ -60,11 +59,11 @@ const (
 )
 
 type DefinitionStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewDefinitionStore(adapter adapters.DatabaseAdapter) *DefinitionStore {
-	return &DefinitionStore{adapter: adapter.(adapters.DatabaseAdapter)}
+func NewDefinitionStore(adapter actions.DatabaseAdapter) *DefinitionStore {
+	return &DefinitionStore{adapter: adapter.(actions.DatabaseAdapter)}
 }
 
 func (s *DefinitionStore) Create(ctx context.Context, p payloads.Payload) error {

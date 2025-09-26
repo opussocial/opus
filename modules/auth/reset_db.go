@@ -4,9 +4,8 @@ import (
 	"time"
 	"context"
 	// "database/sql"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 const (
@@ -16,10 +15,10 @@ const (
 )
 
 type ResetStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewResetStore(adapter adapters.DatabaseAdapter) *ResetStore {
+func NewResetStore(adapter actions.DatabaseAdapter) *ResetStore {
 	return &ResetStore{adapter: adapter}
 }
 

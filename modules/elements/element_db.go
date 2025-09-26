@@ -2,9 +2,8 @@ package elements
 
 import (
 	"context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 /**
@@ -120,10 +119,10 @@ const (
 )
 
 type ElementStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewElementStore(adapter adapters.DatabaseAdapter) *ElementStore {
+func NewElementStore(adapter actions.DatabaseAdapter) *ElementStore {
 	return &ElementStore{adapter: adapter}
 }
 

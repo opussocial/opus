@@ -7,9 +7,8 @@ import (
 	"context"
 	"database/sql"
 
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 /**
@@ -59,10 +58,10 @@ const (
 )
 
 type StoryStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewStoryStore(adapter adapters.DatabaseAdapter) *StoryStore {
+func NewStoryStore(adapter actions.DatabaseAdapter) *StoryStore {
 	return &StoryStore{adapter: adapter}
 }
 

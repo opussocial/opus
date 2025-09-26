@@ -7,9 +7,8 @@ import (
 	"context"
     "net/http"
  
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 /**
@@ -176,13 +175,13 @@ func (p *Story) Process() error {
  * 
  * 
  **/
-func CreateStoryAction(p payloads.Payload, adapter interface{}) error {
+func CreateStoryAction(p actions.Payload, container actions.Container) error {
 	var err error
 	err = p.Process()
 	if err != nil {
 		return err
 	}
-	db := adapter.(adapters.DatabaseAdapter)
+	db := adapter.(actions.DatabaseAdapter)
 	if err != nil {
 		return err
 	}
@@ -214,7 +213,7 @@ func CreateStoryAction(p payloads.Payload, adapter interface{}) error {
 	return nil
 }
 
-func UpdateStoryAction(p payloads.Payload, adapter interface{}) error {
+func UpdateStoryAction(p actions.Payload, container actions.Container) error {
 	var err error
 	// TODO: CHECK IF NECESSARY
 	// err = p.Process()
@@ -222,7 +221,7 @@ func UpdateStoryAction(p payloads.Payload, adapter interface{}) error {
 	// 	return err
 	// }
 
-	db := adapter.(adapters.DatabaseAdapter)
+	db := adapter.(actions.DatabaseAdapter)
 	if err != nil {
 		return err
 	}
@@ -251,9 +250,9 @@ func UpdateStoryAction(p payloads.Payload, adapter interface{}) error {
 	return nil
 }
 
-func ShowStoryAction(p payloads.Payload, adapter interface{}) error {
+func ShowStoryAction(p actions.Payload, container actions.Container) error {
 	var err error
-	store := NewStoryStore(adapter.(adapters.DatabaseAdapter))
+	store := NewStoryStore(container.DB())
 	err = store.GetBySlug(context.Background(), p)
 	if err != nil {
 		return err
@@ -277,9 +276,9 @@ func ShowStoryAction(p payloads.Payload, adapter interface{}) error {
 	return nil
 }
 
-func IndexStoryAction(p payloads.Payload, adapter interface{}) error {
+func IndexStoryAction(p actions.Payload, container actions.Container) error {
 	var err error
-	store := NewStoryStore(adapter.(adapters.DatabaseAdapter))
+	store := NewStoryStore(container.DB())
 	err = store.Index(context.Background(), p)
 	if err != nil {
 		return err
@@ -287,7 +286,7 @@ func IndexStoryAction(p payloads.Payload, adapter interface{}) error {
 	return nil
 }
 
-func DeleteStoryAction(p payloads.Payload, adapter interface{}) error {
-	store := NewStoryStore(adapter.(adapters.DatabaseAdapter))
+func DeleteStoryAction(p actions.Payload, container actions.Container) error {
+	store := NewStoryStore(container.DB())
 	return store.Delete(context.Background(), p)
 }

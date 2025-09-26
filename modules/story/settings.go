@@ -3,7 +3,7 @@ package story
 import (
 	"time"
     "net/http"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type SettingResults []Setting 

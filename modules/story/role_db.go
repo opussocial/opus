@@ -3,9 +3,8 @@ package story
 import (
 	"strings"
 	"context"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
+    "gitlab.com/pedrokoblitz/opus-go/actions"
+    "gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 /**
@@ -46,11 +45,11 @@ const (
 )
 
 type RoleStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewRoleStore(adapter adapters.DatabaseAdapter) *RoleStore {
-	return &RoleStore{adapter: adapter.(adapters.DatabaseAdapter)}
+func NewRoleStore(adapter actions.DatabaseAdapter) *RoleStore {
+	return &RoleStore{adapter: adapter.(actions.DatabaseAdapter)}
 }
 
 func (s *RoleStore) Create(ctx context.Context, p payloads.Payload) error {

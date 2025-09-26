@@ -12,10 +12,8 @@ import (
   "path"
   "time"
   // "database/sql"
-  "gitlab.com/pedrokoblitz/opus-go/internal/actions"
-  "gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-  "gitlab.com/pedrokoblitz/opus-go/internal/payloads"
-  "gitlab.com/pedrokoblitz/opus-go/internal/quality"
+  "gitlab.com/pedrokoblitz/opus-go/actions"
+  "gitlab.com/pedrokoblitz/opus-go/quality"
   "github.com/julienschmidt/httprouter"
   "golang.org/x/time/rate"
 
@@ -61,18 +59,15 @@ func NewHTTPService(
     time.Minute*10,  // Cleanup interval
   )
 
-  db := container.DB
-  theme := container.Theme
-  registry := container.Registry
+  theme := container.Theme()
+  registry := container.Registry()
   handler := NewRouteHandler(
     hub,
-    db,
-    theme,
-    registry,
+    container,
     cm,
     rl,
   )
-  cfg := container.Config
+  cfg := container.Config()
   port := cfg.Service.HTTP.Port
   service := &HTTPService{
     server: &http.Server{
@@ -126,7 +121,7 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
   // TODO: webhook route
 
   // Register modules
-  cfg := s.container.Config
+  cfg := s.container.Config()
   modules := cfg.Service.Modules
   for _, module := range modules {
     modulePath := "./resources/modules/" + module + "/module.yml"
@@ -199,9 +194,7 @@ func (s *HTTPService) Shutdown(ctx context.Context) error {
 
 type RouteHandler struct {
   hub      *PubSubHub
-  db   adapters.DatabaseAdapter
-  theme   *adapters.ThemeAdapter
-  registry *actions.ActionRegistry
+  container actions.Container
   cm       *quality.ConnectionManager
   rl       *quality.RateLimiter
 }
@@ -209,18 +202,14 @@ type RouteHandler struct {
 // Update NewRouteHandler
 func NewRouteHandler(
   hub *PubSubHub,
-  db   adapters.DatabaseAdapter,
-  theme   *adapters.ThemeAdapter,
-  registry *actions.ActionRegistry,
+  container actions.Container
   cm *quality.ConnectionManager,
   rl *quality.RateLimiter,
 ) *RouteHandler {
 
   handler := &RouteHandler{
     hub:   hub,
-    db:   db,
-    theme:   theme,
-    registry:   registry,
+    container: container,
     cm:       cm,
     rl:       rl,
   }
@@ -304,8 +293,8 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
     "theme/assets/lib/director.min.js",
     "theme/assets/services.js",
   }
-
-  err = h.theme.LoadAssets(cssFiles, jsFiles)
+  theme := h.container.Theme()
+  err = theme.LoadAssets(cssFiles, jsFiles)
   if err != nil {
     return err
   }
@@ -315,7 +304,7 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
     "Route":  rc,
   }
 
-  err = h.theme.Render(w, rc.Document, rc.Module, rc.Template, data)
+  err = theme.Render(w, rc.Document, rc.Module, rc.Template, data)
   if err != nil {
     return err
   }
@@ -336,12 +325,13 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
   if err != nil {
     return err
   }
-  actionFunc, ok := h.registry.ResolveAction(rc.Action)
+  registry := h.container.Registry()
+  actionFunc, ok := registry.ResolveAction(rc.Action)
   if !ok {
     return quality.ErrInvalidAction
   }
 
-  action := actions.NewAction(rc.Action, payload, h.db, actionFunc)
+  action := actions.NewAction(rc.Action, payload, h.container, actionFunc)
   if err := action.Execute(); err != nil {
     h.hub.Publish("error:" + rc.Action, payload)
     h.hub.Publish("error:action", payload)
@@ -371,7 +361,7 @@ func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc Ht
   }
   defer r.Body.Close()
 
-  registry := h.registry
+  registry := h.container.Registry()
   payloadCtor, ok := registry.ResolvePayload(rc.Payload)
   if !ok {
     http.Error(w, "Invalid payload", http.StatusInternalServerError)
@@ -419,7 +409,8 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
     "theme/assets/services.js",
   }
 
-  err = h.theme.LoadAssets(cssFiles, jsFiles)
+  theme := h.container.Theme()
+  err = theme.LoadAssets(cssFiles, jsFiles)
   if err != nil {
     return err
   }
@@ -429,7 +420,8 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
     "Route":  rc,
   }
 
-  err = h.theme.Render(w, rc.Document, rc.Module, rc.Template, data)
+  theme := h.container.Theme()
+  err = theme.Render(w, rc.Document, rc.Module, rc.Template, data)
   if err != nil {
     // TODO: move to quality
     return fmt.Errorf("failed to render template: %w", err)
@@ -471,7 +463,8 @@ func (h *RouteHandler) handleHTMLError(w http.ResponseWriter, status int, messag
   data := map[string]interface{}{
     "Title":  "Opus",
   }
-  err := h.theme.Render(w, "", "", "", data)
+  theme := h.container.Theme()
+  err := theme.Render(w, "", "", "", data)
   if err != nil {
     writeJSONError(w, status, "Request failed", err.Error())
   }

@@ -4,9 +4,8 @@ import (
 	// "fmt"
 	"context"
 	"database/sql"
-	"gitlab.com/pedrokoblitz/opus-go/internal/adapters"
-	"gitlab.com/pedrokoblitz/opus-go/internal/quality"
-	"gitlab.com/pedrokoblitz/opus-go/internal/payloads"
+	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 const (
@@ -22,10 +21,10 @@ const (
 )
 
 type UserStore struct {
-	adapter adapters.DatabaseAdapter
+	adapter actions.DatabaseAdapter
 }
 
-func NewUserStore(adapter adapters.DatabaseAdapter) *UserStore {
+func NewUserStore(adapter actions.DatabaseAdapter) *UserStore {
 	return &UserStore{adapter: adapter}
 }
 

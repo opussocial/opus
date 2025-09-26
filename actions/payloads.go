@@ -38,9 +38,7 @@ type DefaultPayload struct {
 
 func (p *DefaultPayload) Process() error { return nil }
 
-func (p *DefaultPayload) FromRequest(r *http.Request) error {
-	return nil
-}
+func (p *DefaultPayload) FromRequest(r *http.Request) error { return nil }
 
 func (p *DefaultPayload) Validate() error {
 	if p.ID == 0 {
@@ -63,17 +61,5 @@ func (p *DefaultID) Validate() error {
 	if p.ID == 0 {
 		return quality.ErrValidation.WithDetail("ID is required")
 	}
-	return nil
-}
-
-type HttpRequestParams struct {
-	ClientIp string
-	Url string
-	Referrer string
-}
-
-func (p *HttpRequestParams) Process() error { return nil }
-
-func (p *HttpRequestParams) Validate() error {
 	return nil
 }
