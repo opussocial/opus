@@ -97,20 +97,6 @@ func main() {
 
 
 
-
-
-
-
-package main
-
-import (
-    "fmt"
-    "log"
-    "strconv"
-    
-    "github.com/joho/godotenv"
-)
-
 // type Config struct {
 //     Port        int
 //     DatabaseURL string

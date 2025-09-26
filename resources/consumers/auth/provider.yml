@@ -1,5 +1,5 @@
-consumer:
-  name: auth
+provider:
+  name: site
   http:
     api:
       prefix: api/v1/auth
@@ -47,6 +47,8 @@ consumer:
       prefix: /
       document: admin
       routes:
+        - pattern: /
+          template: site
         - pattern: /auth
           template: auth
         - pattern: /profile
