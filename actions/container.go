@@ -11,12 +11,34 @@ import (
 // ServiceType defines the types of services available in the container
 type ServiceType string
 
+type DBConfig struct {
+	Driver   string
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Database string
+}
+
+type SMTPConfig struct {
+	Host     string
+	Port     int
+	Sender   string
+	Password string
+}
+
+// Minimal service config for actions.Container
+type ServiceConfig struct {
+	DB   DBConfig
+	SMTP SMTPConfig
+}
+
 const (
-	ServiceDB       ServiceType = "db"
-	ServiceEmail    ServiceType = "email"
-	ServiceTheme ServiceType = "theme"
-	ServiceRegistry ServiceType = "registry"
-	ServiceConfig   ServiceType = "config"
+	DB       ServiceType = "db"
+	Email    ServiceType = "email"
+	Theme    ServiceType = "theme"
+	Registry ServiceType = "registry"
+	Config   ServiceType = "config"
 )
 
 var (
@@ -48,10 +70,7 @@ func NewContainer(cfg *ServiceConfig) (*Container, error) {
 	}
 
 	// Initialize email adapter
-	email, err := adapters.NewEmailAdapter(cfg.Service.Smtp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize email service: %w", err)
-	}
+	email := adapters.NewEmailAdapter(cfg.Service.Smtp)
 
 	// Initialize theme adapter
 	theme := adapters.NewThemeAdapter("./resources/", "page")
@@ -79,11 +98,11 @@ func (c *Container) registerServices() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.services[ServiceDB] = c.db
-	c.services[ServiceEmail] = c.email
-	c.services[ServiceTheme] = c.theme
-	c.services[ServiceRegistry] = c.registry
-	c.services[ServiceConfig] = c.cfg
+	c.services[DB] = c.db
+	c.services[Email] = c.email
+	c.services[Theme] = c.theme
+	c.services[Registry] = c.registry
+	c.services[Config] = c.cfg
 }
 
 // Get retrieves a service by type with type safety
@@ -135,48 +154,48 @@ func (c *Container) MustGet(serviceType ServiceType) interface{} {
 	return service
 }
 
-// Close gracefully shuts down all services
-func (c *Container) Close() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+// // Close gracefully shuts down all services
+// func (c *Container) Close() error {
+// 	c.mu.Lock()
+// 	defer c.mu.Unlock()
 
-	var errs []error
+// 	var errs []error
 
-	// Close database connection if it has a Close method
-	if closer, ok := c.db.(interface{ Close() error }); ok {
-		if err := closer.Close(); err != nil {
-			errs = append(errs, fmt.Errorf("failed to close database: %w", err))
-		}
-	}
+// 	// Close database connection if it has a Close method
+// 	if closer, ok := c.db.(interface{ Close() error }); ok {
+// 		if err := closer.Close(); err != nil {
+// 			errs = append(errs, fmt.Errorf("failed to close database: %w", err))
+// 		}
+// 	}
 
-	// Close email service if it has a Close method
-	if closer, ok := c.email.(interface{ Close() error }); ok {
-		if err := closer.Close(); err != nil {
-			errs = append(errs, fmt.Errorf("failed to close email service: %w", err))
-		}
-	}
+// 	// Close email service if it has a Close method
+// 	if closer, ok := c.email.(interface{ Close() error }); ok {
+// 		if err := closer.Close(); err != nil {
+// 			errs = append(errs, fmt.Errorf("failed to close email service: %w", err))
+// 		}
+// 	}
 
-	// Clear services map
-	c.services = make(map[ServiceType]interface{})
+// 	// Clear services map
+// 	c.services = make(map[ServiceType]interface{})
 
-	if len(errs) > 0 {
-		return fmt.Errorf("errors closing container: %v", errs)
-	}
+// 	if len(errs) > 0 {
+// 		return fmt.Errorf("errors closing container: %v", errs)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-// HealthCheck returns the status of all services
-func (c *Container) HealthCheck() map[ServiceType]bool {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+// // HealthCheck returns the status of all services
+// func (c *Container) HealthCheck() map[ServiceType]bool {
+// 	c.mu.RLock()
+// 	defer c.mu.RUnlock()
 
-	health := make(map[ServiceType]bool)
+// 	health := make(map[ServiceType]bool)
 
-	for serviceType := range c.services {
-		// Add custom health checks for each service type if needed
-		health[serviceType] = true // Default to true, implement actual checks
-	}
+// 	for serviceType := range c.services {
+// 		// Add custom health checks for each service type if needed
+// 		health[serviceType] = true // Default to true, implement actual checks
+// 	}
 
-	return health
-}
+// 	return health
+// }
