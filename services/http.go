@@ -90,7 +90,7 @@ func (s *HTTPService) registerTopics() {
   s.hub.CreateTopic("success:action")
 }
 
-func (s *HTTPService) registerActionTopics(rc HttpRoute) {
+func (s *HTTPService) registerActionTopics(rc actions.HttpRoute) {
   beforeAction := "before:" + rc.Action
   s.hub.CreateTopic(beforeAction)
   errorAction := "error:" + rc.Action
@@ -123,7 +123,7 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
   modules := cfg.Modules
   for _, module := range modules {
     modulePath := "./resources/modules/" + module + "/module.yml"
-    moduleConfig, err := LoadModuleConfig(modulePath)
+    moduleConfig, err := actions.LoadModuleConfig(modulePath)
     if err != nil {
       log.Fatal(err)
     }
@@ -216,7 +216,7 @@ func NewRouteHandler(
 }
 
 // HandleHTTPRouter returns an httprouter.Handle function
-func (h *RouteHandler) HandleHTTPRouter(rc HttpRoute) httprouter.Handle {
+func (h *RouteHandler) HandleHTTPRouter(rc actions.HttpRoute) httprouter.Handle {
   return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     // Use shared rate limiter
     if !h.rl.GetVisitor(r.RemoteAddr).Allow() {
@@ -235,7 +235,7 @@ func (h *RouteHandler) HandleHTTPRouter(rc HttpRoute) httprouter.Handle {
   }
 }
 
-func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc HttpRoute, ps httprouter.Params) error {
+func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, ps httprouter.Params) error {
   var err error
 
   ctx := r.Context()
@@ -269,7 +269,7 @@ func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc Ht
   return nil
 }
 
-func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc HttpRoute) error {
+func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute) error {
   var err error
   log.Println("render module tpl", rc.Module, rc.Template)
 
@@ -309,7 +309,7 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
   return nil
 }
 
-func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request, rc HttpRoute, ps httprouter.Params) error {
+func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, ps httprouter.Params) error {
   payload, err := h.bindPayload(w, r, rc, ps)
   if err != nil {
     return err
@@ -352,7 +352,7 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
   return nil
 }
 
-func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc HttpRoute, ps httprouter.Params) (actions.Payload, error) {
+func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, ps httprouter.Params) (actions.Payload, error) {
   if r.Body == nil {
     //TODO: move to quality
     return nil, errors.New("empty request body")
@@ -386,7 +386,7 @@ func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc Ht
   return payload, nil
 }
 
-func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p actions.Payload) error {
+func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
   var err error
   cssFiles := []string{
     "theme/assets/lib/normalize.min.css",
@@ -429,14 +429,14 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
   return nil
 }
 
-func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p actions.Payload) error {
+func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
   if rc.Template != "" {
     return h.handleTemplateResponse(w, r, rc, p)
   }
   return writeJSONResponse(w, http.StatusOK, p)
 }
 
-func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err error, rc HttpRoute) {
+func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err error, rc actions.HttpRoute) {
   var status int
   // TODO: review the shit out of this
   switch {

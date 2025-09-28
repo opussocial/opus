@@ -167,36 +167,29 @@ func (c *Container) MustGet(serviceType ServiceType) interface{} {
 	return service
 }
 
-// // Close gracefully shuts down all services
-// func (c *Container) Close() error {
-// 	c.mu.Lock()
-// 	defer c.mu.Unlock()
+// Close gracefully shuts down all services
+func (c *Container) Close() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-// 	var errs []error
+	var errs []error
+	if err := c.db.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("failed to close database: %w", err))
+	}
 
-// 	// Close database connection if it has a Close method
-// 	if closer, ok := c.db.(interface{ Close() error }); ok {
-// 		if err := closer.Close(); err != nil {
-// 			errs = append(errs, fmt.Errorf("failed to close database: %w", err))
-// 		}
-// 	}
+	// if err := c.email.Close(); err != nil {
+	// 	errs = append(errs, fmt.Errorf("failed to close email service: %w", err))
+	// }
 
-// 	// Close email service if it has a Close method
-// 	if closer, ok := c.email.(interface{ Close() error }); ok {
-// 		if err := closer.Close(); err != nil {
-// 			errs = append(errs, fmt.Errorf("failed to close email service: %w", err))
-// 		}
-// 	}
+	// Clear services map
+	c.services = make(map[ServiceType]interface{})
 
-// 	// Clear services map
-// 	c.services = make(map[ServiceType]interface{})
+	if len(errs) > 0 {
+		return fmt.Errorf("errors closing container: %v", errs)
+	}
 
-// 	if len(errs) > 0 {
-// 		return fmt.Errorf("errors closing container: %v", errs)
-// 	}
-
-// 	return nil
-// }
+	return nil
+}
 
 // // HealthCheck returns the status of all services
 // func (c *Container) HealthCheck() map[ServiceType]bool {

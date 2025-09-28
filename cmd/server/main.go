@@ -16,7 +16,7 @@ import (
 
 func main() {
 	resourcesDir := "./resources"
-	config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
+	config, err := actions.LoadServiceConfig(resourcesDir + "/service.yml")
 	if err != nil {
 		log.Fatal("Failed to load service config:", err)
 	}
@@ -108,7 +108,7 @@ func gracefulShutdown(container actions.Container, httpSvc *services.HTTPService
 // Alternative simpler version if you prefer a more concise approach:
 func mainSimple() {
 	resourcesDir := "./resources"
-	config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
+	config, err := actions.LoadServiceConfig(resourcesDir + "/service.yml")
 	if err != nil {
 		log.Fatal("Failed to load service config:", err)
 	}

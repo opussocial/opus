@@ -1,4 +1,4 @@
-package services
+package actions
 
 import (
 	"fmt"
@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
-
-	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
 
 type PubSubOptions struct {
@@ -130,8 +128,8 @@ type HttpRoute struct {
 }
 
 // LoadServiceConfig loads and validates module configuration
-func LoadServiceConfig(path string) (*actions.ServiceConfig, error) {
-	var cfg actions.ServiceConfig
+func LoadServiceConfig(path string) (*ServiceConfig, error) {
+	var cfg ServiceConfig
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read service config: %w", err)
