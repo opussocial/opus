@@ -6,11 +6,11 @@ import (
 	"context"
 	"net/http"
 	"net/mail"
-	"database/sql"
 
 	//  "unicode/utf8"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
+	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type Token struct {
@@ -23,7 +23,7 @@ func (p *Token) FromRequest(r *http.Request) error {
 
 func (p *Token) Validate() error {
 	if p.Token == "" {
-		return actions.ErrValidation.WithDetail("token is required")
+		return quality.ErrValidation.WithDetail("token is required")
 	}
 	return nil
 }
@@ -42,13 +42,13 @@ func (p *Login) FromRequest(r *http.Request) error {
 
 func (p *Login) Validate() error {
 	if p.Email == "" {
-		return actions.ErrValidation.WithDetail("email is required")
+		return quality.ErrValidation.WithDetail("email is required")
 	}
 	if _, err := mail.ParseAddress(p.Email); err != nil {
-		return actions.ErrValidation.WithDetail("invalid email format")
+		return quality.ErrValidation.WithDetail("invalid email format")
 	}
 	// if utf8.RuneCountInString(p.Password) < 8 {
-	//     return actions.ErrValidation.WithDetail("password must be at least 8 characters")
+	//     return quality.ErrValidation.WithDetail("password must be at least 8 characters")
 	// }
 
 	p.InputPassword = p.Password
@@ -58,12 +58,12 @@ func (p *Login) Validate() error {
 func (p *Login) Process() error {
 	token, err := GenerateBearerToken(p.ID)
 	if err != nil {
-		return actions.ErrExecution.WithDetail("error generating token")
+		return quality.ErrExecution.WithDetail("error generating token")
 	}
 	p.Token = token
 	err = CheckPassword(p.InputPassword, p.Password)
 	if err != nil {
-		return actions.ErrUnauthorized
+		return quality.ErrUnauthorized
 	}
 	return nil
 }
@@ -90,6 +90,6 @@ func BeforeShowHook(p actions.Payload, container actions.Container) error {
 }
 
 func LogoutAction(p actions.Payload, container actions.Container) error {
-	store := NewLoginStore(adapter.(*sql.DB))
+	store := NewLoginStore(container.DB())
 	return store.DeleteAuthToken(context.Background(), p)
 }

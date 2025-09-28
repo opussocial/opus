@@ -22,7 +22,7 @@ func NewResetStore(adapter *sql.DB) *ResetStore {
 	return &ResetStore{adapter: adapter}
 }
 
-func (s *ResetStore) CreateResetToken(ctx context.Context, p payloads.Payload) error {
+func (s *ResetStore) CreateResetToken(ctx context.Context, p actions.Payload) error {
 	reset := p.(*ResetRequest)
 	_, err := s.adapter.ExecContext(ctx,
 		InsertResetTokenMySQLQuery,
@@ -34,7 +34,7 @@ func (s *ResetStore) CreateResetToken(ctx context.Context, p payloads.Payload) e
 	return nil
 }
 
-func (s *ResetStore) DeleteResetToken(ctx context.Context, p payloads.Payload) error {
+func (s *ResetStore) DeleteResetToken(ctx context.Context, p actions.Payload) error {
 	token := p.(*Reset)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteResetTokenMySQLQuery,
@@ -46,7 +46,7 @@ func (s *ResetStore) DeleteResetToken(ctx context.Context, p payloads.Payload) e
 	return nil
 }
 
-func (s *ResetStore) ResetPassword(ctx context.Context, p payloads.Payload) error {
+func (s *ResetStore) ResetPassword(ctx context.Context, p actions.Payload) error {
 	password := p.(*Reset)
 	_, err := s.adapter.ExecContext(ctx,
 		ResetPasswordMySQLQuery,

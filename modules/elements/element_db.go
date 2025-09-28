@@ -127,7 +127,7 @@ func NewElementStore(adapter *sql.DB) *ElementStore {
 	return &ElementStore{adapter: adapter}
 }
 
-func (s *ElementStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) Create(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateElementMySQLQuery,
@@ -146,7 +146,7 @@ func (s *ElementStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *ElementStore) CreateFileSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreateFileSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreateFileSchemaMySQLQuery,
@@ -160,7 +160,7 @@ func (s *ElementStore) CreateFileSchema(ctx context.Context, p payloads.Payload)
 	return nil
 }
 
-func (s *ElementStore) CreateTextSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreateTextSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreateTextSchemaMySQLQuery,
@@ -173,7 +173,7 @@ func (s *ElementStore) CreateTextSchema(ctx context.Context, p payloads.Payload)
 	return nil
 }
 
-func (s *ElementStore) CreatePersonSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreatePersonSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreatePersonSchemaMySQLQuery,
@@ -187,7 +187,7 @@ func (s *ElementStore) CreatePersonSchema(ctx context.Context, p payloads.Payloa
 	return nil
 }
 
-func (s *ElementStore) CreateContactPointSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreateContactPointSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreateContactPointSchemaMySQLQuery,
@@ -200,7 +200,7 @@ func (s *ElementStore) CreateContactPointSchema(ctx context.Context, p payloads.
 	return nil
 }
 
-func (s *ElementStore) CreatePostalAddressSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreatePostalAddressSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreatePostalAddressSchemaMySQLQuery,
@@ -213,7 +213,7 @@ func (s *ElementStore) CreatePostalAddressSchema(ctx context.Context, p payloads
 	return nil
 }
 
-func (s *ElementStore) CreateTimeTrackingSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreateTimeTrackingSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreateTimeTrackingSchemaMySQLQuery,
@@ -226,7 +226,7 @@ func (s *ElementStore) CreateTimeTrackingSchema(ctx context.Context, p payloads.
 	return nil
 }
 
-func (s *ElementStore) CreateWebResourceSchema(ctx context.Context, p payloads.Payload) error {
+func (s *ElementStore) CreateWebResourceSchema(ctx context.Context, p actions.Payload) error {
 	element := p.(*Element)
 	_, err := s.adapter.ExecContext(ctx,
 		CreateWebResourceSchemaMySQLQuery,
@@ -239,8 +239,8 @@ func (s *ElementStore) CreateWebResourceSchema(ctx context.Context, p payloads.P
 	return nil
 }
 
-func (s *ElementStore) Delete(ctx context.Context, p payloads.Payload) error {
-	payload := p.(*payloads.DefaultID)
+func (s *ElementStore) Delete(ctx context.Context, p actions.Payload) error {
+	payload := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteElementMySQLQuery,
 		payload.ID, // element.ID

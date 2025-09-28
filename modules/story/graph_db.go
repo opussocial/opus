@@ -28,7 +28,7 @@ func NewGraphRelationshipStore(adapter *sql.DB) *GraphRelationshipStore {
 	return &GraphRelationshipStore{adapter: adapter}
 }
 
-func (s *GraphRelationshipStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *GraphRelationshipStore) Create(ctx context.Context, p actions.Payload) error {
 	relation := p.(*GraphRelationship)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateGraphRelationshipMySQLQuery,
@@ -45,8 +45,8 @@ func (s *GraphRelationshipStore) Create(ctx context.Context, p payloads.Payload)
 	return nil
 }
 
-func (s *GraphRelationshipStore) Delete(ctx context.Context, p payloads.Payload) error {
-	relation := p.(*payloads.DefaultID)
+func (s *GraphRelationshipStore) Delete(ctx context.Context, p actions.Payload) error {
+	relation := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteGraphRelationshipMySQLQuery,
 		relation.ID,

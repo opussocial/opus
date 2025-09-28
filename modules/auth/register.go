@@ -73,7 +73,7 @@ func SignUpAction(p actions.Payload, container actions.Container) error {
 }
 
 func WelcomeEmailAction(p actions.Payload, container actions.Container) error {
-	emailService := adapter.(*adapters.EmailAdapter)
+	emailService := container.Email()
 	signUp := p.(*SignUp)
 	message := fmt.Sprintf(`
         <html>

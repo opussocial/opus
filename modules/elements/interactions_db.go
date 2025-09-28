@@ -43,7 +43,7 @@ func NewInteractionStore(adapter *sql.DB) *InteractionStore {
 	return &InteractionStore{adapter: adapter}
 }
 
-func (s *InteractionStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *InteractionStore) Create(ctx context.Context, p actions.Payload) error {
 	interaction := p.(*Interaction)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateInteractionMySQLQuery,
@@ -66,8 +66,8 @@ func (s *InteractionStore) Create(ctx context.Context, p payloads.Payload) error
 	return nil
 }
 
-func (s *InteractionStore) Delete(ctx context.Context, p payloads.Payload) error {
-	interaction := p.(*payloads.DefaultID)
+func (s *InteractionStore) Delete(ctx context.Context, p actions.Payload) error {
+	interaction := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteInteractionMySQLQuery,
 		interaction.ID,
@@ -99,7 +99,7 @@ func NewKeywordStore(adapter *sql.DB) *KeywordStore {
 	return &KeywordStore{adapter: adapter}
 }
 
-func (s *KeywordStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *KeywordStore) Create(ctx context.Context, p actions.Payload) error {
 	keyword := p.(*Keyword)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateKeywordMySQLQuery,
@@ -119,8 +119,8 @@ func (s *KeywordStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *KeywordStore) Delete(ctx context.Context, p payloads.Payload) error {
-	keyword := p.(*payloads.DefaultID)
+func (s *KeywordStore) Delete(ctx context.Context, p actions.Payload) error {
+	keyword := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteKeywordMySQLQuery,
 		keyword.ID,

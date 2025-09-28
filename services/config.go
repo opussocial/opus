@@ -7,9 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	// "database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
-	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type PubSubOptions struct {
@@ -61,16 +59,6 @@ func (mc *ModuleConfig) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (s ServiceConfig) Dsn() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		"root",
-		"root",
-		"localhost",
-		3307,
-		"opus_test",
-	)
 }
 
 type DatabaseConfig struct {
@@ -142,18 +130,17 @@ type HttpRoute struct {
 }
 
 // LoadServiceConfig loads and validates module configuration
-func LoadServiceConfig(path string) (*ServiceConfig, error) {
-	var cfg ServiceConfig
+func LoadServiceConfig(path string) (*actions.ServiceConfig, error) {
+	var cfg actions.ServiceConfig
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read service config: %w", err)
 	}
-
 	yaml.Unmarshal(data, &cfg)
 
-	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid service config: %w", err)
-	}
+	// if err := cfg.Validate(); err != nil {
+	// 	return nil, fmt.Errorf("invalid service config: %w", err)
+	// }
 
 	return &cfg, nil
 }

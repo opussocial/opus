@@ -50,10 +50,10 @@ type RoleStore struct {
 }
 
 func NewRoleStore(adapter *sql.DB) *RoleStore {
-	return &RoleStore{adapter: adapter.(*sql.DB)}
+	return &RoleStore{adapter: adapter}
 }
 
-func (s *RoleStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *RoleStore) Create(ctx context.Context, p actions.Payload) error {
 	role := p.(*Role)
     var storyID uint
     err := s.adapter.QueryRowContext(ctx, "SELECT id FROM stories WHERE slug = ?", role.Story).Scan(&storyID)
@@ -79,7 +79,7 @@ func (s *RoleStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *RoleStore) Update(ctx context.Context, p payloads.Payload) error {
+func (s *RoleStore) Update(ctx context.Context, p actions.Payload) error {
 	role := p.(*Role)
 	_, err := s.adapter.ExecContext(ctx,
 		UpdateRoleMySQLQuery,
@@ -91,8 +91,8 @@ func (s *RoleStore) Update(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *RoleStore) Delete(ctx context.Context, p payloads.Payload) error {
-	role := p.(*payloads.DefaultID)
+func (s *RoleStore) Delete(ctx context.Context, p actions.Payload) error {
+	role := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteRoleMySQLQuery,
 		role.ID,
@@ -103,7 +103,7 @@ func (s *RoleStore) Delete(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *RoleStore) GetPermissionsByActions(ctx context.Context, p payloads.Payload) error {
+func (s *RoleStore) GetPermissionsByActions(ctx context.Context, p actions.Payload) error {
     role := p.(*Role)
     if len(role.Permissions) == 0 {
         return nil
@@ -138,7 +138,7 @@ func (s *RoleStore) GetPermissionsByActions(ctx context.Context, p payloads.Payl
 }
 
 // AddPermissions relates specific permissions to role
-func (s *RoleStore) AddPermissionRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *RoleStore) AddPermissionRelationships(ctx context.Context, p actions.Payload) error {
     role := p.(*Role)
     if len(role.PermissionModels) == 0 {
         return nil
@@ -162,7 +162,7 @@ func (s *RoleStore) AddPermissionRelationships(ctx context.Context, p payloads.P
 
 
 // SyncPermissionRelationships syncs permission relationships for a role
-func (s *RoleStore) SyncPermissionRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *RoleStore) SyncPermissionRelationships(ctx context.Context, p actions.Payload) error {
     role := p.(*Role)
     
     // First, delete existing permission relationships

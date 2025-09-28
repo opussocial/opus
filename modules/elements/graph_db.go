@@ -27,7 +27,7 @@ func NewGraphStore(adapter *sql.DB) *GraphStore {
 	return &GraphStore{adapter: adapter}
 }
 
-func (s *GraphStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *GraphStore) Create(ctx context.Context, p actions.Payload) error {
 	graph := p.(*Graph)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateGraphMySQLQuery,
@@ -46,8 +46,8 @@ func (s *GraphStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *GraphStore) Delete(ctx context.Context, p payloads.Payload) error {
-	graph := p.(*payloads.DefaultID)
+func (s *GraphStore) Delete(ctx context.Context, p actions.Payload) error {
+	graph := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteGraphMySQLQuery,
 		graph.ID,

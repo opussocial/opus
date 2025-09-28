@@ -28,7 +28,7 @@ func NewUserStore(adapter *sql.DB) *UserStore {
 	return &UserStore{adapter: adapter}
 }
 
-func (s *UserStore) UpdateUser(ctx context.Context, p payloads.Payload) error {
+func (s *UserStore) UpdateUser(ctx context.Context, p actions.Payload) error {
 	profile := p.(*User)
 	_, err := s.adapter.ExecContext(ctx,
 		UpdateUserMySQLQuery,
@@ -40,8 +40,8 @@ func (s *UserStore) UpdateUser(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *UserStore) RemoveAccount(ctx context.Context, p payloads.Payload) error {
-	defaultID := p.(*payloads.DefaultID)
+func (s *UserStore) RemoveAccount(ctx context.Context, p actions.Payload) error {
+	defaultID := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		RemoveAccountMySQLQuery,
 		defaultID.ID,
@@ -52,7 +52,7 @@ func (s *UserStore) RemoveAccount(ctx context.Context, p payloads.Payload) error
 	return nil
 }
 
-func (s *UserStore) GetByToken(ctx context.Context, p payloads.Payload) error {
+func (s *UserStore) GetByToken(ctx context.Context, p actions.Payload) error {
 	profile := p.(*User)
 	err := s.adapter.QueryRowContext(ctx,
 		GetUserByTokenMySQLQuery,
@@ -69,7 +69,7 @@ func (s *UserStore) GetByToken(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *UserStore) GetByID(ctx context.Context, p payloads.Payload) error {
+func (s *UserStore) GetByID(ctx context.Context, p actions.Payload) error {
 	profile := p.(*User)
 	err := s.adapter.QueryRowContext(ctx,
 		GetUserByIDMySQLQuery,

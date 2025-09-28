@@ -27,7 +27,7 @@ func NewSignUpStore(adapter *sql.DB) *SignUpStore {
 	return &SignUpStore{adapter: adapter}
 }
 
-func (s *SignUpStore) SignUp(ctx context.Context, p payloads.Payload) error {
+func (s *SignUpStore) SignUp(ctx context.Context, p actions.Payload) error {
 	signUp := p.(*SignUp)
 	res, err := s.adapter.ExecContext(ctx,
 		SignUpUserMySQLQuery,
@@ -46,7 +46,7 @@ func (s *SignUpStore) SignUp(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *SignUpStore) CreateConfirmationToken(ctx context.Context, p payloads.Payload) error {
+func (s *SignUpStore) CreateConfirmationToken(ctx context.Context, p actions.Payload) error {
 	signUp := p.(*SignUp)
 	_, err := s.adapter.ExecContext(ctx,
 		InsertConfirmationTokenMySQLQuery,
@@ -58,7 +58,7 @@ func (s *SignUpStore) CreateConfirmationToken(ctx context.Context, p payloads.Pa
 	return nil
 }
 
-func (s *SignUpStore) Confirm(ctx context.Context, p payloads.Payload) error {
+func (s *SignUpStore) Confirm(ctx context.Context, p actions.Payload) error {
 	confirm := p.(*Token)
 	res, err := s.adapter.ExecContext(ctx,
 		ConfirmUserMySQLQuery,
@@ -77,7 +77,7 @@ func (s *SignUpStore) Confirm(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *SignUpStore) DeleteConfirmationToken(ctx context.Context, p payloads.Payload) error {
+func (s *SignUpStore) DeleteConfirmationToken(ctx context.Context, p actions.Payload) error {
 	token := p.(*Token)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteConfirmationTokenMySQLQuery,

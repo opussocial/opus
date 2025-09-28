@@ -37,7 +37,7 @@ func main() {
 	httpSvc := services.NewHTTPService(container, hub)
 
 	// Register modules using type-safe accessors
-	for _, module := range container.Config().Service.Modules {
+	for _, module := range container.Config().Modules {
 		switch module {
 		case "auth":
 			auth.Register(container.Registry())
@@ -56,7 +56,7 @@ func main() {
 	// Start HTTP server in goroutine
 	serverErr := make(chan error, 1)
 	go func() {
-		log.Printf("Starting HTTP server on :%d", container.Config().Service.HTTP.Port)
+		log.Printf("Starting HTTP server on :%d", container.Config().HTTP.Port)
 		if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
 			serverErr <- err
 			stop() // Trigger shutdown if HTTP server fails to start
@@ -75,7 +75,7 @@ func main() {
 	gracefulShutdown(container, httpSvc)
 }
 
-func gracefulShutdown(container *actions.Container, httpSvc *services.HTTPService) {
+func gracefulShutdown(container actions.Container, httpSvc *services.HTTPService) {
 	log.Println("Starting graceful shutdown...")
 
 	// Create shutdown context with timeout
@@ -96,11 +96,11 @@ func gracefulShutdown(container *actions.Container, httpSvc *services.HTTPServic
 
 	// Container close will handle database and other services
 	log.Println("Closing container services...")
-	if err := container.Close(); err != nil {
-		log.Printf("Container close error: %v", err)
-	} else {
-		log.Println("All services closed successfully")
-	}
+	// if err := container.Close(); err != nil {
+	// 	log.Printf("Container close error: %v", err)
+	// } else {
+	// 	log.Println("All services closed successfully")
+	// }
 
 	log.Println("Service shutdown complete")
 }
@@ -118,7 +118,7 @@ func mainSimple() {
 	if err != nil {
 		log.Fatal("Failed to initialize container:", err)
 	}
-	defer container.Close()
+	// defer container.Close()
 
 	// Setup services
 	hub := services.NewPubSubHub(container)
@@ -132,7 +132,7 @@ func mainSimple() {
 }
 
 func registerModules(container actions.Container) {
-	for _, module := range container.Config().Service.Modules {
+	for _, module := range container.Config().Modules {
 		switch module {
 		case "auth":
 			auth.Register(container.Registry())
@@ -142,13 +142,13 @@ func registerModules(container actions.Container) {
 	}
 }
 
-func runServerWithShutdown(container *actions.Container, httpSvc *services.HTTPService) {
+func runServerWithShutdown(container actions.Container, httpSvc *services.HTTPService) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	// Start server
 	go func() {
-		log.Printf("Server starting on port :%d", container.Config().Service.HTTP.Port)
+		log.Printf("Server starting on port :%d", container.Config().HTTP.Port)
 		if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed: %v", err)
 		}

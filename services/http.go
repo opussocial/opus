@@ -21,7 +21,7 @@ import (
 )
 
 type HTTPService struct {
-  container   Container
+  container   actions.Container
   hub      *PubSubHub
 
   server  *http.Server
@@ -30,7 +30,7 @@ type HTTPService struct {
 }
 
 func NewHTTPService(
-  container Container,
+  container actions.Container,
   hub *PubSubHub,
 ) *HTTPService {
 
@@ -59,8 +59,6 @@ func NewHTTPService(
     time.Minute*10,  // Cleanup interval
   )
 
-  theme := container.Theme()
-  registry := container.Registry()
   handler := NewRouteHandler(
     hub,
     container,
@@ -68,7 +66,7 @@ func NewHTTPService(
     rl,
   )
   cfg := container.Config()
-  port := cfg.Service.HTTP.Port
+  port := cfg.HTTP.Port
   service := &HTTPService{
     server: &http.Server{
       Addr:    fmt.Sprintf(":%d", port),
@@ -122,7 +120,7 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
 
   // Register modules
   cfg := s.container.Config()
-  modules := cfg.Service.Modules
+  modules := cfg.Modules
   for _, module := range modules {
     modulePath := "./resources/modules/" + module + "/module.yml"
     moduleConfig, err := LoadModuleConfig(modulePath)
@@ -202,7 +200,7 @@ type RouteHandler struct {
 // Update NewRouteHandler
 func NewRouteHandler(
   hub *PubSubHub,
-  container actions.Container
+  container actions.Container,
   cm *quality.ConnectionManager,
   rl *quality.RateLimiter,
 ) *RouteHandler {
@@ -354,7 +352,7 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
   return nil
 }
 
-func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc HttpRoute, ps httprouter.Params) (payloads.Payload, error) {
+func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc HttpRoute, ps httprouter.Params) (actions.Payload, error) {
   if r.Body == nil {
     //TODO: move to quality
     return nil, errors.New("empty request body")
@@ -388,7 +386,7 @@ func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc Ht
   return payload, nil
 }
 
-func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p payloads.Payload) error {
+func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p actions.Payload) error {
   var err error
   cssFiles := []string{
     "theme/assets/lib/normalize.min.css",
@@ -420,7 +418,6 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
     "Route":  rc,
   }
 
-  theme := h.container.Theme()
   err = theme.Render(w, rc.Document, rc.Module, rc.Template, data)
   if err != nil {
     // TODO: move to quality
@@ -432,7 +429,7 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
   return nil
 }
 
-func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p payloads.Payload) error {
+func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc HttpRoute, p actions.Payload) error {
   if rc.Template != "" {
     return h.handleTemplateResponse(w, r, rc, p)
   }

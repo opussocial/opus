@@ -12,14 +12,14 @@ import (
 )
 
 func Register(registry *actions.ActionRegistry) {
-	registry.RegisterPayload("default:id", func() payloads.Payload { return &payloads.DefaultID{} })
+	registry.RegisterPayload("default:id", func() actions.Payload { return &actions.DefaultID{} })
 
-	registry.RegisterPayload("password:request", func() payloads.Payload { return &ResetRequest{} })
-	registry.RegisterPayload("password:reset", func() payloads.Payload { return &Reset{} })
-	registry.RegisterPayload("auth:register", func() payloads.Payload { return &SignUp{} })
-	registry.RegisterPayload("auth:login", func() payloads.Payload { return &Login{} })
-	registry.RegisterPayload("user", func() payloads.Payload { return &User{} })
-	registry.RegisterPayload("auth:token", func() payloads.Payload { return &Token{} })
+	registry.RegisterPayload("password:request", func() actions.Payload { return &ResetRequest{} })
+	registry.RegisterPayload("password:reset", func() actions.Payload { return &Reset{} })
+	registry.RegisterPayload("auth:register", func() actions.Payload { return &SignUp{} })
+	registry.RegisterPayload("auth:login", func() actions.Payload { return &Login{} })
+	registry.RegisterPayload("user", func() actions.Payload { return &User{} })
+	registry.RegisterPayload("auth:token", func() actions.Payload { return &Token{} })
 
 	registry.RegisterAction("auth:before", BeforeShowHook)
 

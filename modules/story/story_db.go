@@ -65,7 +65,7 @@ func NewStoryStore(adapter *sql.DB) *StoryStore {
 	return &StoryStore{adapter: adapter}
 }
 
-func (s *StoryStore) CheckSlug(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) CheckSlug(ctx context.Context, p actions.Payload) error {
     story := p.(*Story)
     err := s.adapter.QueryRowContext(ctx, CheckSlugMySQLQuery, story.Slug).Scan(&story.ID)
 
@@ -80,7 +80,7 @@ func (s *StoryStore) CheckSlug(ctx context.Context, p payloads.Payload) error {
 }
 
 // Get retrieves a single story by ID
-func (s *StoryStore) Get(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) Get(ctx context.Context, p actions.Payload) error {
     story := p.(*Story)
     err := s.adapter.QueryRowContext(ctx, GetStoryByIDMySQLQuery, story.ID).Scan(
         &story.ID,
@@ -101,7 +101,7 @@ func (s *StoryStore) Get(ctx context.Context, p payloads.Payload) error {
 }
 
 // Get retrieves a single story
-func (s *StoryStore) GetBySlug(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetBySlug(ctx context.Context, p actions.Payload) error {
     story := p.(*Story)
     err := s.adapter.QueryRowContext(ctx, GetStoryBySlugMySQLQuery, story.Slug).Scan(
         &story.ID,
@@ -122,7 +122,7 @@ func (s *StoryStore) GetBySlug(ctx context.Context, p payloads.Payload) error {
 }
 
 
-func (s *StoryStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) Create(ctx context.Context, p actions.Payload) error {
   story := p.(*Story)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateStoryMySQLQuery,
@@ -142,7 +142,7 @@ func (s *StoryStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *StoryStore) Update(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) Update(ctx context.Context, p actions.Payload) error {
     story := p.(*Story)
 	_, err := s.adapter.ExecContext(ctx,
 		UpdateStoryMySQLQuery,
@@ -155,8 +155,8 @@ func (s *StoryStore) Update(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *StoryStore) Delete(ctx context.Context, p payloads.Payload) error {
-  story := p.(*payloads.DefaultID)
+func (s *StoryStore) Delete(ctx context.Context, p actions.Payload) error {
+  story := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteStoryMySQLQuery,
 		story.ID,
@@ -167,7 +167,7 @@ func (s *StoryStore) Delete(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *StoryStore) AddRoles(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) AddRoles(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	if len(story.RoleModels) == 0 {
 		return nil
@@ -193,7 +193,7 @@ func (s *StoryStore) AddRoles(ctx context.Context, p payloads.Payload) error {
 	return err
 }
 
-func (s *StoryStore) AddRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) AddRelationships(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	if len(story.RoleModels) == 0 {
 		return nil
@@ -219,7 +219,7 @@ func (s *StoryStore) AddRelationships(ctx context.Context, p payloads.Payload) e
 	return err
 }
 
-func (s *StoryStore) AddDefinitions(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) AddDefinitions(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	if len(story.DefinitionModels) == 0 {
 		return nil
@@ -243,7 +243,7 @@ func (s *StoryStore) AddDefinitions(ctx context.Context, p payloads.Payload) err
 	return err
 }
 
-func (s *StoryStore) AddSettings(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) AddSettings(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	if len(story.SettingModels) == 0 {
 		return nil
@@ -267,7 +267,7 @@ func (s *StoryStore) AddSettings(ctx context.Context, p payloads.Payload) error 
 	return err
 }
 
-func (s *StoryStore) Index(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) Index(ctx context.Context, p actions.Payload) error {
 	stories := p.(*StoryResults)
   query := "SELECT id, name, slug, created_at FROM stories"
 
@@ -299,7 +299,7 @@ func (s *StoryStore) Index(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *StoryStore) IndexWithFilters(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) IndexWithFilters(ctx context.Context, p actions.Payload) error {
   query := "SELECT id, name, slug, active, created_at, updated_at FROM stories"
   args := []interface{}{}
   whereClauses := []string{}
@@ -384,7 +384,7 @@ func (s *StoryStore) IndexWithFilters(ctx context.Context, p payloads.Payload) e
   return nil
 }
 
-func (s *StoryStore) GetPermissionsForRole(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetPermissionsForRole(ctx context.Context, p actions.Payload) error {
 	role := p.(*Role)
 	rows, err := s.adapter.QueryContext(
 		ctx,
@@ -410,7 +410,7 @@ func (s *StoryStore) GetPermissionsForRole(ctx context.Context, p payloads.Paylo
 	return nil
 }
 
-func (s *StoryStore) GetRoles(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetRoles(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	rows, err := s.adapter.QueryContext(
 		ctx,
@@ -441,7 +441,7 @@ func (s *StoryStore) GetRoles(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *StoryStore) GetDefinitions(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetDefinitions(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	rows, err := s.adapter.QueryContext(
 		ctx,
@@ -467,7 +467,7 @@ func (s *StoryStore) GetDefinitions(ctx context.Context, p payloads.Payload) err
 	return nil
 }
 
-func (s *StoryStore) GetSchemasForDefinition(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetSchemasForDefinition(ctx context.Context, p actions.Payload) error {
 	definition := p.(*Definition)
 	rows, err := s.adapter.QueryContext(
 		ctx,
@@ -492,7 +492,7 @@ func (s *StoryStore) GetSchemasForDefinition(ctx context.Context, p payloads.Pay
 	return nil
 }
 
-func (s *StoryStore) GetSettings(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetSettings(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	rows, err := s.adapter.QueryContext(
 		ctx,
@@ -514,7 +514,7 @@ func (s *StoryStore) GetSettings(ctx context.Context, p payloads.Payload) error 
 	return nil
 }
 
-func (s *StoryStore) GetRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *StoryStore) GetRelationships(ctx context.Context, p actions.Payload) error {
 	story := p.(*Story)
 	rows, err := s.adapter.QueryContext(
 		ctx,

@@ -64,10 +64,10 @@ type DefinitionStore struct {
 }
 
 func NewDefinitionStore(adapter *sql.DB) *DefinitionStore {
-	return &DefinitionStore{adapter: adapter.(*sql.DB)}
+	return &DefinitionStore{adapter: adapter}
 }
 
-func (s *DefinitionStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) Create(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateDefMySQLQuery,
@@ -85,7 +85,7 @@ func (s *DefinitionStore) Create(ctx context.Context, p payloads.Payload) error 
 	return nil
 }
 
-func (s *DefinitionStore) Update(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) Update(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	_, err := s.adapter.ExecContext(ctx,
 		UpdateDefMySQLQuery,
@@ -97,8 +97,8 @@ func (s *DefinitionStore) Update(ctx context.Context, p payloads.Payload) error 
 	return nil
 }
 
-func (us *DefinitionStore) Delete(ctx context.Context, p payloads.Payload) error {
-	def := p.(*payloads.DefaultID)
+func (us *DefinitionStore) Delete(ctx context.Context, p actions.Payload) error {
+	def := p.(*actions.DefaultID)
 	_, err := us.adapter.ExecContext(ctx,
 		DeleteDefMySQLQuery,
 		def.ID,
@@ -109,7 +109,7 @@ func (us *DefinitionStore) Delete(ctx context.Context, p payloads.Payload) error
 	return nil
 }
 
-func (s *DefinitionStore) GetSchemasBySlugs(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) GetSchemasBySlugs(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	query := GetSchemasBySlugsMySQLQuery
 	values := ""
@@ -143,7 +143,7 @@ func (s *DefinitionStore) GetSchemasBySlugs(ctx context.Context, p payloads.Payl
 	return nil
 }
 
-func (s *DefinitionStore) AddSchemaRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) AddSchemaRelationships(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	if len(def.SchemaModels) == 0 {
 		return nil
@@ -162,7 +162,7 @@ func (s *DefinitionStore) AddSchemaRelationships(ctx context.Context, p payloads
 	return err
 }
 
-func (s *DefinitionStore) AddStatus(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) AddStatus(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	if len(def.StatusModels) == 0 {
 		return nil
@@ -182,7 +182,7 @@ func (s *DefinitionStore) AddStatus(ctx context.Context, p payloads.Payload) err
 	return err
 }
 
-func (s *DefinitionStore) CreatePermissions(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) CreatePermissions(ctx context.Context, p actions.Payload) error {
 	def := p.(*Definition)
 	query := BatchCreateDefPermissionsMySQLQuery
 	slug := def.Slug
@@ -207,7 +207,7 @@ func (s *DefinitionStore) CreatePermissions(ctx context.Context, p payloads.Payl
 }
 
 
-func (s *DefinitionStore) SyncSchemaRelationships(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) SyncSchemaRelationships(ctx context.Context, p actions.Payload) error {
     def := p.(*Definition)
     
     // First, delete existing relationships
@@ -220,7 +220,7 @@ func (s *DefinitionStore) SyncSchemaRelationships(ctx context.Context, p payload
     return s.AddSchemaRelationships(ctx, p)
 }
 
-func (s *DefinitionStore) SyncStatus(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) SyncStatus(ctx context.Context, p actions.Payload) error {
     def := p.(*Definition)
     
     // First, delete existing statuses
@@ -233,7 +233,7 @@ func (s *DefinitionStore) SyncStatus(ctx context.Context, p payloads.Payload) er
 }
 
 // You might also want to add this function to handle state machine sync
-func (s *DefinitionStore) SyncStateMachine(ctx context.Context, p payloads.Payload) error {
+func (s *DefinitionStore) SyncStateMachine(ctx context.Context, p actions.Payload) error {
     def := p.(*Definition)
     
     // First, get all status IDs for this definition to delete state machine entries

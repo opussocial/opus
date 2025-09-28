@@ -22,7 +22,7 @@ func NewLoginStore(adapter *sql.DB) *LoginStore {
 	return &LoginStore{adapter: adapter}
 }
 
-func (s *LoginStore) GetByEmail(ctx context.Context, p payloads.Payload) error {
+func (s *LoginStore) GetByEmail(ctx context.Context, p actions.Payload) error {
 	login := p.(*Login)
 	err := s.adapter.QueryRowContext(ctx,
 		GetUserByEmailMySQLQuery,
@@ -38,7 +38,7 @@ func (s *LoginStore) GetByEmail(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (s *LoginStore) CreateAuthToken(ctx context.Context, p payloads.Payload) error {
+func (s *LoginStore) CreateAuthToken(ctx context.Context, p actions.Payload) error {
 	login := p.(*Login)
 	_, err := s.adapter.ExecContext(ctx,
 		InsertAuthTokenMySQLQuery,
@@ -50,7 +50,7 @@ func (s *LoginStore) CreateAuthToken(ctx context.Context, p payloads.Payload) er
 	return nil
 }
 
-func (s *LoginStore) DeleteAuthToken(ctx context.Context, p payloads.Payload) error {
+func (s *LoginStore) DeleteAuthToken(ctx context.Context, p actions.Payload) error {
 	token := p.(*Token)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteAuthTokenMySQLQuery,

@@ -19,9 +19,9 @@ func (h *ElementRequestParams) FromRequest(r *http.Request) {
 }
 
 func Register(registry *actions.ActionRegistry) {
-	registry.RegisterPayload("element", func() payloads.Payload { return &Element{} })
-	registry.RegisterPayload("interaction", func() payloads.Payload { return &Interaction{} })
-	registry.RegisterPayload("graph", func() payloads.Payload { return &Graph{} })
+	registry.RegisterPayload("element", func() actions.Payload { return &Element{} })
+	registry.RegisterPayload("interaction", func() actions.Payload { return &Interaction{} })
+	registry.RegisterPayload("graph", func() actions.Payload { return &Graph{} })
 
 	registry.RegisterAction("element:create", CreateElementAction)
 	registry.RegisterAction("element:delete", DeleteElementAction)

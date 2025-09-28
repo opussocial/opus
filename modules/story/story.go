@@ -6,7 +6,6 @@ import (
     "encoding/json"
 	"context"
     "net/http"
-	"database/sql"
  
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -70,33 +69,7 @@ func (p Story) MarshalJSON() ([]byte, error) {
     
     return json.Marshal(storyJson{
     	ID: p.ID,
-    	Name: p.Name,func (p Story) MarshalJSON() ([]byte, error) {
-    // Define exactly what fields you want in the output
-    type storyJson struct {
-		ID       uint      `json:"id"`
-		Name     string    `json:"name"`
-		Slug     string    `json:"slug"`
-		Description     string    `json:"description"`
-		Active   bool      `json:"active"`
-		Relationships []GraphRelationship `json:"relationships"`
-		Settings []Setting `json:"settings"`
-		Roles []Role `json:"roles"`
-		Definitions []Definition `json:"definitions"`
-    }
-    
-    return json.Marshal(storyJson{
-    	ID: p.ID,
     	Name: p.Name,
-    	Slug: p.Slug,
-    	Description: p.Description,
-    	Active: p.Active,
-    	Relationships: p.RelationshipModels,
-    	Settings: p.SettingModels,
-    	Roles: p.RoleModels,
-    	Definitions: p.DefinitionModels,
-    })
-}
-
     	Slug: p.Slug,
     	Description: p.Description,
     	Active: p.Active,
@@ -182,7 +155,7 @@ func CreateStoryAction(p actions.Payload, container actions.Container) error {
 	if err != nil {
 		return err
 	}
-	db := adapter.(*sql.DB)
+	db := container.DB()
 	if err != nil {
 		return err
 	}
@@ -222,7 +195,7 @@ func UpdateStoryAction(p actions.Payload, container actions.Container) error {
 	// 	return err
 	// }
 
-	db := adapter.(*sql.DB)
+	db := container.DB()
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ func NewSettingStore(adapter *sql.DB) *SettingStore {
 	return &SettingStore{adapter: adapter}
 }
 
-func (s *SettingStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *SettingStore) Create(ctx context.Context, p actions.Payload) error {
 	setting := p.(*Setting)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateSettingMySQLQuery,
@@ -53,8 +53,8 @@ func (s *SettingStore) Create(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (us *SettingStore) Delete(ctx context.Context, p payloads.Payload) error {
-	setting := p.(*payloads.DefaultID)
+func (us *SettingStore) Delete(ctx context.Context, p actions.Payload) error {
+	setting := p.(*actions.DefaultID)
 	_, err := us.adapter.ExecContext(ctx,
 		DeleteSettingMySQLQuery,
 		setting.ID,
@@ -65,8 +65,8 @@ func (us *SettingStore) Delete(ctx context.Context, p payloads.Payload) error {
 	return nil
 }
 
-func (us *SettingStore) DeleteByStoryID(ctx context.Context, p payloads.Payload) error {
-	setting := p.(*payloads.DefaultID)
+func (us *SettingStore) DeleteByStoryID(ctx context.Context, p actions.Payload) error {
+	setting := p.(*actions.DefaultID)
 	_, err := us.adapter.ExecContext(ctx,
 		DeleteSettingByStoryIDMySQLQuery,
 		setting.ID,

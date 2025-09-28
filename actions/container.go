@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"database/sql"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions/adapters"
 )
@@ -20,18 +21,29 @@ type DBConfig struct {
 	Database string
 }
 
-type SMTPConfig struct {
+type HTTPConfig struct {
 	Host     string
 	Port     int
-	Sender   string
-	Password string
 }
 
 // Minimal service config for actions.Container
 type ServiceConfig struct {
+	Modules []string
+	HTTP HTTPConfig
 	DB   DBConfig
-	SMTP SMTPConfig
+	SMTP adapters.EmailConfig
 }
+
+func (s ServiceConfig) Dsn() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		"root",
+		"root",
+		"localhost",
+		3307,
+		"opus_test",
+	)
+}
+
 
 const (
 	DB       ServiceType = "db"
@@ -52,25 +64,26 @@ type Container struct {
 	services map[ServiceType]interface{}
 	cfg      *ServiceConfig
 	registry *ActionRegistry
-	db       *adapters.SQLAdapter
+	db       *sql.DB
 	theme    *adapters.ThemeAdapter
 	email    *adapters.EmailAdapter
 }
 
 // NewContainer creates and initializes a new Container with all dependencies
-func NewContainer(cfg *ServiceConfig) (*Container, error) {
+func NewContainer(cfg *ServiceConfig) (Container, error) {
+	var container Container
 	if cfg == nil {
-		return nil, fmt.Errorf("%w: config cannot be nil", ErrInvalidConfig)
+		return container, fmt.Errorf("%w: config cannot be nil", ErrInvalidConfig)
 	}
 
 	// Initialize database adapter
 	db, err := adapters.NewSQLAdapter(cfg.Dsn())
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+		return container, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
 	// Initialize email adapter
-	email := adapters.NewEmailAdapter(cfg.Service.Smtp)
+	email := adapters.NewEmailAdapter(cfg.SMTP)
 
 	// Initialize theme adapter
 	theme := adapters.NewThemeAdapter("./resources/", "page")
@@ -78,7 +91,7 @@ func NewContainer(cfg *ServiceConfig) (*Container, error) {
 
 	registry := NewActionRegistry()
 
-	container := &Container{
+	container = Container{
 		cfg:      cfg,
 		db:       db,
 		registry: registry,
@@ -121,7 +134,7 @@ func (c *Container) Get(serviceType ServiceType) (interface{}, error) {
 // Type-safe getter methods for better developer experience
 
 // DB returns the database adapter
-func (c *Container) DB() *adapters.SQLAdapter {
+func (c *Container) DB() *sql.DB {
 	return c.db
 }
 

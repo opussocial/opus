@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
-	"gitlab.com/pedrokoblitz/opus-go/quality"
+	// "gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
 type BaseRequest struct {
@@ -17,13 +17,13 @@ type BaseRequest struct {
 type BaseResponse struct {}
 
 func Register(registry *actions.ActionRegistry) {
-	registry.RegisterPayload("default:id", func() payloads.Payload { return &payloads.DefaultID{} })
+	registry.RegisterPayload("default:id", func() actions.Payload { return &actions.DefaultID{} })
 
-	registry.RegisterPayload("story", func() payloads.Payload { return &Story{} })
-	registry.RegisterPayload("story:results", func() payloads.Payload { return &StoryResults{} })
-	registry.RegisterPayload("definition", func() payloads.Payload { return &Definition{} })
-	registry.RegisterPayload("role", func() payloads.Payload { return &Role{} })
-	registry.RegisterPayload("relationship", func() payloads.Payload { return &GraphRelationship{} })
+	registry.RegisterPayload("story", func() actions.Payload { return &Story{} })
+	registry.RegisterPayload("story:results", func() actions.Payload { return &StoryResults{} })
+	registry.RegisterPayload("definition", func() actions.Payload { return &Definition{} })
+	registry.RegisterPayload("role", func() actions.Payload { return &Role{} })
+	registry.RegisterPayload("relationship", func() actions.Payload { return &GraphRelationship{} })
 
 	registry.RegisterAction("story:index", IndexStoryAction)
 	registry.RegisterAction("story:show", ShowStoryAction)

@@ -6,10 +6,6 @@ import (
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
 
-type SQLAdapter struct {
-    DB *sql.DB
-}
-
 func NewSQLAdapter(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {

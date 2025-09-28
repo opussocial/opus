@@ -28,7 +28,7 @@ func NewProfileRelationshipStore(adapter *sql.DB) *ProfileRelationshipStore {
 	return &ProfileRelationshipStore{adapter: adapter}
 }
 
-func (s *ProfileRelationshipStore) Create(ctx context.Context, p payloads.Payload) error {
+func (s *ProfileRelationshipStore) Create(ctx context.Context, p actions.Payload) error {
 	profile := p.(*ProfileRelationship)
 	res, err := s.adapter.ExecContext(ctx,
 		CreateProfileMySQLQuery,
@@ -47,8 +47,8 @@ func (s *ProfileRelationshipStore) Create(ctx context.Context, p payloads.Payloa
 	return nil
 }
 
-func (s *ProfileRelationshipStore) Delete(ctx context.Context, p payloads.Payload) error {
-	profile := p.(*payloads.DefaultID)
+func (s *ProfileRelationshipStore) Delete(ctx context.Context, p actions.Payload) error {
+	profile := p.(*actions.DefaultID)
 	_, err := s.adapter.ExecContext(ctx,
 		DeleteProfileByUserIDMySQLQuery,
 		profile.ID,

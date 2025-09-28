@@ -16,7 +16,7 @@ type PubSubHub struct {
 // PubSubHub implements a publish-subscribe messaging system
   mu             sync.RWMutex
   topics         map[string]*Topic
-  container Container
+  container actions.Container
 }
 
 // Topic represents a message channel with subscribers
@@ -48,12 +48,12 @@ type RetryPolicy struct {
 // Message wraps payload with metadata
 type Message struct {
   Topic   string
-  Payload payloads.Payload
+  Payload actions.Payload
   Context context.Context
 }
 
 // NewPubSubHub creates a new PubSubHub instance
-func NewPubSubHub(container Container) *PubSubHub {
+func NewPubSubHub(container actions.Container) *PubSubHub {
   return &PubSubHub{
     topics:         make(map[string]*Topic),
     container: container,
@@ -108,7 +108,7 @@ func (a *PubSubHub) Subscribe(topicName, actionName string, opts SubscriberOptio
   return nil
 }
 // Publish sends a message to all subscribers of a topic
-func (a *PubSubHub) Publish(topicName string, p payloads.Payload) error {
+func (a *PubSubHub) Publish(topicName string, p actions.Payload) error {
   fmt.Println(topicName)
   fmt.Println(topicName)
   fmt.Println(topicName)
@@ -179,11 +179,10 @@ func (a *PubSubHub) processMessage(msg Message, sub HubSubscriber) {
 
   for attempt := 1; attempt <= opts.RetryPolicy.MaxAttempts; attempt++ {
     // Create action with the resolved handler
-    db := a.container.DB()
     action := actions.NewAction(
       fmt.Sprintf("pubsub:%s:%s", msg.Topic, sub.id),
       msg.Payload,
-      db,
+      a.container,
       sub.handler,
     )
 

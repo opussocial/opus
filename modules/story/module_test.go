@@ -248,11 +248,11 @@ func DoCreateGraphRelationship(t *testing.T, adapter *sql.DB) (uint, error) {
 func DoDeleteGraphRelationship(t *testing.T, adapter *sql.DB, relationshipID uint) error {
 	var err error
 	
-	emptyPayload := &payloads.DefaultID{}
+	emptyPayload := &actions.DefaultID{}
 	err = emptyPayload.Validate()
 	require.ErrorIs(t, err, quality.ErrValidation)
 
-	validPayload := &payloads.DefaultID{
+	validPayload := &actions.DefaultID{
 		ID: relationshipID,
 	}
 	
@@ -266,11 +266,11 @@ func DoDeleteGraphRelationship(t *testing.T, adapter *sql.DB, relationshipID uin
 func DoDeleteRole(t *testing.T, adapter *sql.DB, roleID uint) error {
 	var err error
 	
-	emptyPayload := &payloads.DefaultID{}
+	emptyPayload := &actions.DefaultID{}
 	err = emptyPayload.Validate()
 	require.ErrorIs(t, err, quality.ErrValidation)
 
-	validPayload := &payloads.DefaultID{
+	validPayload := &actions.DefaultID{
 		ID: roleID,
 	}
 	
@@ -284,11 +284,11 @@ func DoDeleteRole(t *testing.T, adapter *sql.DB, roleID uint) error {
 func DoDeleteDefinition(t *testing.T, adapter *sql.DB, definitionID uint) error {
 	var err error
 	
-	emptyPayload := &payloads.DefaultID{}
+	emptyPayload := &actions.DefaultID{}
 	err = emptyPayload.Validate()
 	require.ErrorIs(t, err, quality.ErrValidation)
 
-	validPayload := &payloads.DefaultID{
+	validPayload := &actions.DefaultID{
 		ID: definitionID,
 	}
 	
@@ -302,11 +302,11 @@ func DoDeleteDefinition(t *testing.T, adapter *sql.DB, definitionID uint) error 
 func DoDeleteStory(t *testing.T, adapter *sql.DB, storyID uint) error {
 	var err error
 	
-	emptyPayload := &payloads.DefaultID{}
+	emptyPayload := &actions.DefaultID{}
 	err = emptyPayload.Validate()
 	require.ErrorIs(t, err, quality.ErrValidation)
 
-	validPayload := &payloads.DefaultID{
+	validPayload := &actions.DefaultID{
 		ID: storyID,
 	}
 	
