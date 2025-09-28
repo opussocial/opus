@@ -6,6 +6,7 @@ import (
     "encoding/json"
 	"context"
     "net/http"
+	"database/sql"
  
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -181,7 +182,7 @@ func CreateStoryAction(p actions.Payload, container actions.Container) error {
 	if err != nil {
 		return err
 	}
-	db := adapter.(actions.DatabaseAdapter)
+	db := adapter.(*sql.DB)
 	if err != nil {
 		return err
 	}
@@ -221,7 +222,7 @@ func UpdateStoryAction(p actions.Payload, container actions.Container) error {
 	// 	return err
 	// }
 
-	db := adapter.(actions.DatabaseAdapter)
+	db := adapter.(*sql.DB)
 	if err != nil {
 		return err
 	}

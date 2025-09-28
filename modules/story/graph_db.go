@@ -2,6 +2,7 @@ package story
 
 import (
 	"context"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
@@ -20,10 +21,10 @@ const (
  **/
 
 type GraphRelationshipStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewGraphRelationshipStore(adapter actions.DatabaseAdapter) *GraphRelationshipStore {
+func NewGraphRelationshipStore(adapter *sql.DB) *GraphRelationshipStore {
 	return &GraphRelationshipStore{adapter: adapter}
 }
 

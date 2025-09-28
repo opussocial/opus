@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"net/mail"
+	"database/sql"
 
 	//  "unicode/utf8"
 
@@ -89,6 +90,6 @@ func BeforeShowHook(p actions.Payload, container actions.Container) error {
 }
 
 func LogoutAction(p actions.Payload, container actions.Container) error {
-	store := NewLoginStore(adapter.(actions.DatabaseAdapter))
+	store := NewLoginStore(adapter.(*sql.DB))
 	return store.DeleteAuthToken(context.Background(), p)
 }

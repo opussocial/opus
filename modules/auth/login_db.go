@@ -15,10 +15,10 @@ const (
 )
 
 type LoginStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewLoginStore(adapter actions.DatabaseAdapter) *LoginStore {
+func NewLoginStore(adapter *sql.DB) *LoginStore {
 	return &LoginStore{adapter: adapter}
 }
 

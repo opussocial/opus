@@ -11,10 +11,10 @@ import (
 )
 
 // type PermissionChecker struct {
-// 	adapter actions.DatabaseAdapter
+// 	adapter *sql.DB
 // }
 
-// func NewPermissionChecker(adapter actions.DatabaseAdapter) *PermissionChecker {
+// func NewPermissionChecker(adapter *sql.DB) *PermissionChecker {
 // 	return &PermissionChecker{
 // 		adapter: adapter,
 // 	}

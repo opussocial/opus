@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	"database/sql"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -91,7 +92,7 @@ func (p *Role) Process() error {
 
 func CreateRoleAction(p actions.Payload, container actions.Container) error {
 	var err error
-	db := adapter.(actions.DatabaseAdapter)
+	db := adapter.(*sql.DB)
 
 	store := NewRoleStore(db)
 	err = p.Process()
@@ -113,7 +114,7 @@ func CreateRoleAction(p actions.Payload, container actions.Container) error {
 
 func UpdateRoleAction(p actions.Payload, container actions.Container) error {
 	var err error
-	db := adapter.(actions.DatabaseAdapter)
+	db := adapter.(*sql.DB)
 
 	store := NewRoleStore(db)
 	err = p.Process()

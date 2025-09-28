@@ -58,10 +58,10 @@ const (
 )
 
 type StoryStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewStoryStore(adapter actions.DatabaseAdapter) *StoryStore {
+func NewStoryStore(adapter *sql.DB) *StoryStore {
 	return &StoryStore{adapter: adapter}
 }
 

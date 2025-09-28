@@ -4,7 +4,7 @@ import (
 	// "fmt"
 	"time"
 	"context"
-	// "database/sql"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
@@ -20,10 +20,10 @@ const (
 )
 
 type SignUpStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewSignUpStore(adapter actions.DatabaseAdapter) *SignUpStore {
+func NewSignUpStore(adapter *sql.DB) *SignUpStore {
 	return &SignUpStore{adapter: adapter}
 }
 

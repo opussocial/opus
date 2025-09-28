@@ -2,6 +2,7 @@ package elements
 
 import (
 	"context"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 )
@@ -19,10 +20,10 @@ const (
 )
 
 type GraphStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewGraphStore(adapter actions.DatabaseAdapter) *GraphStore {
+func NewGraphStore(adapter *sql.DB) *GraphStore {
 	return &GraphStore{adapter: adapter}
 }
 

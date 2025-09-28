@@ -2,6 +2,7 @@ package story
 
 import (
 	"context"
+	"database/sql"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -26,10 +27,10 @@ const (
  **/
 
 type SettingStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewSettingStore(adapter actions.DatabaseAdapter) *SettingStore {
+func NewSettingStore(adapter *sql.DB) *SettingStore {
 	return &SettingStore{adapter: adapter}
 }
 

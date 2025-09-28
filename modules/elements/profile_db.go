@@ -2,6 +2,7 @@ package elements
 
 import (
 	"context"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
@@ -20,10 +21,10 @@ const (
 )
 
 type ProfileRelationshipStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewProfileRelationshipStore(adapter actions.DatabaseAdapter) *ProfileRelationshipStore {
+func NewProfileRelationshipStore(adapter *sql.DB) *ProfileRelationshipStore {
 	return &ProfileRelationshipStore{adapter: adapter}
 }
 

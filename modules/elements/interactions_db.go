@@ -2,6 +2,7 @@ package elements
 
 import (
 	"context"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
@@ -35,10 +36,10 @@ const (
 )
 
 type InteractionStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewInteractionStore(adapter actions.DatabaseAdapter) *InteractionStore {
+func NewInteractionStore(adapter *sql.DB) *InteractionStore {
 	return &InteractionStore{adapter: adapter}
 }
 
@@ -91,10 +92,10 @@ const (
 )
 
 type KeywordStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewKeywordStore(adapter actions.DatabaseAdapter) *KeywordStore {
+func NewKeywordStore(adapter *sql.DB) *KeywordStore {
 	return &KeywordStore{adapter: adapter}
 }
 

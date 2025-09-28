@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 	"context"
-	// "database/sql"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
@@ -15,10 +15,10 @@ const (
 )
 
 type ResetStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewResetStore(adapter actions.DatabaseAdapter) *ResetStore {
+func NewResetStore(adapter *sql.DB) *ResetStore {
 	return &ResetStore{adapter: adapter}
 }
 

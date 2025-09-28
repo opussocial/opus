@@ -21,10 +21,10 @@ const (
 )
 
 type UserStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewUserStore(adapter actions.DatabaseAdapter) *UserStore {
+func NewUserStore(adapter *sql.DB) *UserStore {
 	return &UserStore{adapter: adapter}
 }
 

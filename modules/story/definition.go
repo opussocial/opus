@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	"database/sql"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -206,7 +207,7 @@ func UpdateDefinitionAction(p actions.Payload, container actions.Container) erro
 	// 	return err
 	// }
 
-	db := adapter.(actions.DatabaseAdapter)
+	db := adapter.(*sql.DB)
 	if err != nil {
 		return err
 	}

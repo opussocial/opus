@@ -2,6 +2,7 @@ package elements
 
 import (
 	"context"
+	"database/sql"
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
 )
@@ -119,10 +120,10 @@ const (
 )
 
 type ElementStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewElementStore(adapter actions.DatabaseAdapter) *ElementStore {
+func NewElementStore(adapter *sql.DB) *ElementStore {
 	return &ElementStore{adapter: adapter}
 }
 

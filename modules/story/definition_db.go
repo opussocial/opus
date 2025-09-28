@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"context"
+	"database/sql"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/quality"
@@ -59,11 +60,11 @@ const (
 )
 
 type DefinitionStore struct {
-	adapter actions.DatabaseAdapter
+	adapter *sql.DB
 }
 
-func NewDefinitionStore(adapter actions.DatabaseAdapter) *DefinitionStore {
-	return &DefinitionStore{adapter: adapter.(actions.DatabaseAdapter)}
+func NewDefinitionStore(adapter *sql.DB) *DefinitionStore {
+	return &DefinitionStore{adapter: adapter.(*sql.DB)}
 }
 
 func (s *DefinitionStore) Create(ctx context.Context, p payloads.Payload) error {
