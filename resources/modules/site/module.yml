@@ -1,9 +1,0 @@
-module:
-  name: site
-  http:
-    views:
-      document: admin
-      prefix: /
-      routes:
-        - pattern: /
-          template: site

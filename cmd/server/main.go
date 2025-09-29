@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+    "github.com/joho/godotenv"
 
 	"gitlab.com/pedrokoblitz/opus-go/actions"
 	"gitlab.com/pedrokoblitz/opus-go/modules/auth"
@@ -32,21 +33,13 @@ func main() {
 	// 	}
 	// }()
 
+	// register providers
+	auth.Register(container.Registry())
+	story.Register(container.Registry())
+
 	// Initialize services using the container
 	hub := services.NewPubSubHub(container)
 	httpSvc := services.NewHTTPService(container, hub)
-
-	// Register modules using type-safe accessors
-	for _, module := range container.Config().Modules {
-		switch module {
-		case "auth":
-			auth.Register(container.Registry())
-		case "story":
-			story.Register(container.Registry())
-		default:
-			log.Printf("Warning: Unknown module '%s'", module)
-		}
-	}
 
 	// Create context for graceful shutdown
 	shutdownCtx, stop := signal.NotifyContext(context.Background(),
