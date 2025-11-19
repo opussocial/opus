@@ -1,0 +1,11 @@
+provider:
+  name: site
+
+  http:
+    views:
+      document: page
+      prefix: "/"
+      routes:
+        - pattern: "/"
+          template: home
+          method: GET

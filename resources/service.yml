@@ -1,4 +1,5 @@
-service:
-  name: opus
-  consumers:
-    - auth
+http:
+  port: 9000
+
+providers:
+  - site

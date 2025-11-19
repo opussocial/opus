@@ -1,154 +1,109 @@
 package main
 
 import (
-    // "os"
-    // "fmt"
-    "log"
-    "time"
     "context"
+    "log"
     "net/http"
-    "syscall"
     "os/signal"
-
-    "github.com/joho/godotenv"
-
-    "gitlab.com/pedrokoblitz/opus-go/providers/auth"
-    "gitlab.com/pedrokoblitz/opus-go/services"
+    "syscall"
+    "time"
+    
+    "github.com/opussocialcontent/opus-go/actions"
+    "github.com/opussocialcontent/opus-go/services"
 )
 
 func main() {
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-
-    debug := os.Getenv("DEBUG")
-    environment := os.Getenv("ENVIRONMENT")
-    port := os.Getenv("APP_PORT")
-    dbUser := os.Getenv("DB_USER")
-    dbPassword := os.Getenv("DB_PASSWORD")
-    dbHost := os.Getenv("DB_HOST")
-    dbPort := os.Getenv("DB_PORT")
-
     resourcesDir := "./resources"
-    config, err := services.LoadServiceConfig(resourcesDir + "/service.yml")
+    
+    // Define default service configuration
+    defaultServiceConfig := &actions.ServiceConfig{
+        HTTP: actions.HTTPConfig{
+            Host: "localhost",
+            Port: 8080,
+        },
+        DB: actions.DBConfig{
+            Driver:   "mysql",
+            Host:     "localhost",
+            Port:     3306,
+            User:     "dbuser",
+            Password: "1234",
+            Database: "opus",
+        },
+    }
+    
+    // Load service config with optional default
+    config, err := actions.LoadServiceConfig(resourcesDir+"/service.yml", defaultServiceConfig)
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Failed to load service config:", err)
     }
-    config.Service.Debug = debug
-    config.Service.HTTP.Port = port
-    config.Service.DSN = dbURL
 
-    // Initialize services
-    container := services.NewContainer(config)
-    hub := services.NewPubSubHub(container)
-    httpSvc := services.NewHTTPService(container, hub)
-
-    // Register providers
-    for _, module := range config.Service.Modules {
-        switch module {
-        case "auth":
-            auth.Register(container.Registry)
+    // Initialize container with DB and theme services
+    container, err := actions.NewContainer(config)
+    if err != nil {
+        log.Fatal("Failed to initialize container:", err)
+    }
+    defer func() {
+        if err := container.Close(); err != nil {
+            log.Printf("Error closing container: %v", err)
         }
+    }()
 
-        // Create context for shutdown
-        shutdownCtx, stop := signal.NotifyContext(context.Background(), 
+    // Initialize HTTP service without PubSub hub
+    httpSvc := services.NewHTTPService(container, nil)
+
+    // Create context for graceful shutdown
+    shutdownCtx, stop := signal.NotifyContext(context.Background(),
         syscall.SIGINT, syscall.SIGTERM)
-        defer stop()
+    defer stop()
 
-        go func() {
-            log.Printf("Starting HTTP server on :%d", config.Service.HTTP.Port)
-            if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
-                log.Printf("HTTP service failed: %v", err)
-                stop() // Trigger shutdown if HTTP fails
-            }
-        }()
+    // Start HTTP server in goroutine
+    serverErr := make(chan error, 1)
+    go func() {
+        log.Printf("Starting HTTP server on :%d", container.Config().HTTP.Port)
+        if err := httpSvc.Start(); err != nil && err != http.ErrServerClosed {
+            serverErr <- err
+            stop() // Trigger shutdown if HTTP server fails to start
+        }
+    }()
 
-        // Wait for shutdown signal
-        <-shutdownCtx.Done()
+    // Wait for shutdown signal or server error
+    select {
+    case <-shutdownCtx.Done():
         log.Println("Shutdown signal received")
-
-        // Start graceful shutdown with timeout
-        gracefulCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-        defer cancel()
-
-        // Shutdown HTTP server
-        log.Println("Shutting down HTTP server...")
-        if err := httpSvc.Shutdown(gracefulCtx); err != nil {
-            log.Printf("HTTP server shutdown error: %v", err)
-        } else {
-            log.Println("HTTP server stopped gracefully")
-        }
-
-        // Close database connection
-        log.Println("Closing database connection...")
-        db := container.DB
-        if err := db.Close(); err != nil {
-            log.Printf("Database close error: %v", err)
-        } else {
-            log.Println("Database connection closed")
-        }
-
-        log.Println("Service shutdown complete")
+    case err := <-serverErr:
+        log.Printf("HTTP server failed: %v", err)
     }
+
+    // Perform graceful shutdown with timeout
+    gracefulShutdown(container, httpSvc)
 }
 
+func gracefulShutdown(container actions.Container, httpSvc *services.HTTPService) {
+    log.Println("Starting graceful shutdown...")
 
+    // Create shutdown context with timeout
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
 
+    // Shutdown HTTP server first (stop accepting new requests)
+    log.Println("Shutting down HTTP server...")
+    if err := httpSvc.Shutdown(shutdownCtx); err != nil {
+        if err == context.DeadlineExceeded {
+            log.Println("HTTP server shutdown timeout - forcing close")
+        } else {
+            log.Printf("HTTP server shutdown error: %v", err)
+        }
+    } else {
+        log.Println("HTTP server stopped gracefully")
+    }
 
+    // Container close will handle database
+    log.Println("Closing container services...")
+    if err := container.Close(); err != nil {
+        log.Printf("Container close error: %v", err)
+    } else {
+        log.Println("All services closed successfully")
+    }
 
-// type Config struct {
-//     Port        int
-//     DatabaseURL string
-//     Debug       bool
-//     APIKey      string
-//     Environment string
-// }
-
-// func LoadConfig() (*Config, error) {
-//     err := godotenv.Load()
-//     if err != nil {
-//         log.Println("No .env file found, using system environment variables")
-//     }
-
-//     port, _ := strconv.Atoi(getEnv("APP_PORT", "8080"))
-//     debug, _ := strconv.ParseBool(getEnv("DEBUG", "false"))
-
-//     return &Config{
-//         Port:        port,
-//         DatabaseURL: getEnv("DATABASE_URL", ""),
-//         Debug:       debug,
-//         APIKey:      getEnv("API_KEY", ""),
-//         Environment: getEnv("ENVIRONMENT", "development"),
-//     }, nil
-// }
-
-// func getEnv(key, defaultValue string) string {
-//     value := os.Getenv(key)
-//     if value == "" {
-//         return defaultValue
-//     }
-//     return value
-// }
-
-// func main() {
-//     config, err := LoadConfig()
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-
-//     fmt.Printf("Config: %+v\n", config)
-// }
-
-// func loadEnv() error {
-//     env := os.Getenv("GO_ENV")
-//     if env == "" {
-//         env = "development"
-//     }
-    
-//     // Try to load environment-specific file first
-//     godotenv.Load(fmt.Sprintf(".env.%s", env))
-    
-//     // Fall back to default .env file
-//     return godotenv.Load()
-// }
+    log.Println("Service shutdown complete")
+}
