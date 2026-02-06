@@ -1,11 +1,8 @@
 provider:
-  name: site
-
   http:
     views:
+      prefix: /
       document: page
-      prefix: "/"
       routes:
-        - pattern: "/"
+        - pattern: /
           template: home
-          method: GET
