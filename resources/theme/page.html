@@ -1,15 +1,29 @@
-<!-- resources/theme/page.html -->
+{{define "page"}}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title><% .Title %></title>
-    <% .RenderedCss %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    {{.RenderedCss}}
 </head>
 <body>
-    <div class="main-container">
-        <h1>Welcome to Opus</h1>
-        <% template "content" . %>
+    <div id="app">
+        <header>
+            <h1>{{.Title}}</h1>
+        </header>
+        <main>
+            {{template "home" .}}
+        </main>
     </div>
-    <% .RenderedJs %>
+    {{.RenderedJs}}
+    
+    <script>
+        const data = {
+            title: '<% title %>',
+            description: '<% description %>'
+        };
+    </script>
 </body>
 </html>
+{{end}}

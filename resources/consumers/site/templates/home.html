@@ -1,8 +1,9 @@
-<!-- resources/modules/test/theme/test.html -->
-{{ define "content" }}
-<div class="test-content">
-    <h2>Test Module Content</h2>
-    <p>Template rendering successful!</p>
-    <p>Route: <% .Route.Pattern %></p>
+{{define "home"}}
+<div class="home">
+    <h2>Welcome to Opus</h2>
+    <p>This is the home page content.</p>
+    {{if .Data}}
+        <pre>{{.Data}}</pre>
+    {{end}}
 </div>
-{{ end }}
+{{end}}

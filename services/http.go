@@ -387,15 +387,9 @@ func (h *RouteHandler) findTemplatePath(provider, template string) (string, erro
   return "", fmt.Errorf("template not found: %s (tried: %s, %s, %s, %s)", 
     template, newPath, newPathNoExt, legacyPath, legacyPathNoExt)
 }
-
+// handleTemplateRoute renders a template using the theme adapter
 func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute) error {
   log.Println("render provider tpl", rc.Provider, rc.Template)
-
-  // Find the template path
-  templatePath, err := h.findTemplatePath(rc.Provider, rc.Template)
-  if err != nil {
-    return err
-  }
 
   // Load assets using paths relative to resources/
   cssFiles, jsFiles := GetDefaultAssetPaths()
@@ -403,7 +397,7 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
   theme := h.container.Theme()
   
   // Try to load from simplified structure first
-  err = theme.LoadAssets(cssFiles, jsFiles)
+  err := theme.LoadAssets(cssFiles, jsFiles)
   if err != nil {
     // Fallback to legacy structure
     log.Printf("Failed to load assets from simplified structure, trying legacy: %v", err)
@@ -414,28 +408,68 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
     }
   }
 
+  // Prepare template data
   data := map[string]interface{}{
     "Title":  "Opus",
     "Route":  rc,
   }
 
-  // Parse and execute template directly from filesystem (reloads on each request)
-  // This ensures templates are updated without recompiling
-  tmpl, err := template.New(filepath.Base(templatePath)).Funcs(h.templateFuncs).ParseFiles(templatePath)
-  if err != nil {
-    log.Printf("Failed to parse template: %v", err)
-    return fmt.Errorf("failed to parse template: %w", err)
+  // Determine the document template (default: "page")
+  document := "page"
+  if rc.Document != "" {
+    document = rc.Document
   }
 
-  // Execute the template
-  w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  err = tmpl.Execute(w, data)
+  // Use the ThemeAdapter's Render method
+  err = theme.Render(w, document, rc.Provider, rc.Template, data)
   if err != nil {
-    log.Printf("Failed to execute template: %v", err)
-    return fmt.Errorf("failed to execute template: %w", err)
+    log.Printf("Failed to render template: %v", err)
+    return fmt.Errorf("failed to render template: %w", err)
   }
   
-  log.Printf("Successfully rendered template: %s", templatePath)
+  log.Printf("Successfully rendered template: %s", rc.Template)
+  return nil
+}
+
+// handleTemplateResponse renders a template response with payload data
+func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
+  // Load assets using paths relative to resources/
+  cssFiles, jsFiles := GetDefaultAssetPaths()
+  
+  theme := h.container.Theme()
+  
+  // Try to load from simplified structure first
+  err := theme.LoadAssets(cssFiles, jsFiles)
+  if err != nil {
+    // Fallback to legacy structure
+    log.Printf("Failed to load assets from simplified structure, trying legacy: %v", err)
+    legacyAssets := GetLegacyAssets()
+    err = theme.LoadAssets(legacyAssets.CSSFiles, legacyAssets.JSFiles)
+    if err != nil {
+      return fmt.Errorf("failed to load assets: %w", err)
+    }
+  }
+
+  // Prepare template data with payload
+  data := map[string]interface{}{
+    "Title":  "Opus",
+    "Route":  rc,
+    "Data":   p,
+  }
+
+  // Determine the document template (default: "page")
+  document := "page"
+  if rc.Document != "" {
+    document = rc.Document
+  }
+
+  // Use the ThemeAdapter's Render method
+  err = theme.Render(w, document, rc.Provider, rc.Template, data)
+  if err != nil {
+    log.Printf("Failed to render template: %v", err)
+    return fmt.Errorf("failed to render template: %w", err)
+  }
+
   return nil
 }
 
@@ -508,52 +542,6 @@ func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc ac
     }
   }
   return payload, nil
-}
-
-func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
-  // Find the template path
-  templatePath, err := h.findTemplatePath(rc.Provider, rc.Template)
-  if err != nil {
-    return err
-  }
-
-  // Load assets using paths relative to resources/
-  cssFiles, jsFiles := GetDefaultAssetPaths()
-  
-  theme := h.container.Theme()
-  
-  // Try to load from simplified structure first
-  err = theme.LoadAssets(cssFiles, jsFiles)
-  if err != nil {
-    // Fallback to legacy structure
-    log.Printf("Failed to load assets from simplified structure, trying legacy: %v", err)
-    legacyAssets := GetLegacyAssets()
-    err = theme.LoadAssets(legacyAssets.CSSFiles, legacyAssets.JSFiles)
-    if err != nil {
-      return fmt.Errorf("failed to load assets: %w", err)
-    }
-  }
-
-  data := map[string]interface{}{
-    "Title":  "Opus",
-    "Route":  rc,
-  }
-
-  // Parse and execute template directly from filesystem (reloads on each request)
-  tmpl, err := template.New(filepath.Base(templatePath)).Funcs(h.templateFuncs).ParseFiles(templatePath)
-  if err != nil {
-    log.Printf("Failed to parse template: %v", err)
-    return fmt.Errorf("failed to parse template: %w", err)
-  }
-
-  w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  err = tmpl.Execute(w, data)
-  if err != nil {
-    log.Printf("Failed to execute template: %v", err)
-    return fmt.Errorf("failed to execute template: %w", err)
-  }
-
-  return nil
 }
 
 func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
