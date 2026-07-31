@@ -11,20 +11,101 @@ import (
   "os"
   "path"
   "time"
-  // "database/sql"
+  "path/filepath"
+  "html/template"
+  
   "github.com/opussocialcontent/opus-go/actions"
   "github.com/opussocialcontent/opus-go/quality"
   "github.com/julienschmidt/httprouter"
   "golang.org/x/time/rate"
 )
 
+// AssetPaths holds the simplified asset paths
+var (
+  // Base directories - these are relative to the theme loader
+  // The theme loader already looks in resources/ directory
+  ResourcesDir = "./resources"
+  StaticAssetsDir = "static"
+  ConsumersDir = "consumers"
+  ThemeDir = "theme"
+  
+  // Subdirectories relative to static
+  CSSDir = StaticAssetsDir + "/css"
+  JSDir = StaticAssetsDir + "/js"
+  FontsDir = StaticAssetsDir + "/fonts"
+  ImagesDir = StaticAssetsDir + "/images"
+  
+  // Template directories
+  TemplatesDir = "templates"  // New location
+  LegacyTemplatesDir = "theme" // Old location
+)
+
+// AssetConfig defines which assets to load for different contexts
+type AssetConfig struct {
+  CSSFiles []string
+  JSFiles  []string
+}
+
+// GetDefaultAssets returns the default asset configuration
+// These paths are relative to the resources/ directory
+func GetDefaultAssets() AssetConfig {
+  return AssetConfig{
+    CSSFiles: []string{
+      "static/css/normalize.min.css",
+      "static/css/semantic.min.css",
+      "static/css/fontawesome.min.css",
+      "static/css/fonts.css",
+      "static/css/opus.css",
+    },
+    JSFiles: []string{
+      "static/js/polyfill.min.js",
+      "static/js/jquery-3.6.0.min.js",
+      "static/js/d3.min.js",
+      "static/js/semantic.min.js",
+      "static/js/rxjs.umd.min.js",
+      "static/js/petite-vue.iife.js",
+      "static/js/director.min.js",
+      "static/js/services.js",
+    },
+  }
+}
+
+// GetLegacyAssets returns the legacy asset paths for backward compatibility
+// These paths are relative to the resources/ directory
+func GetLegacyAssets() AssetConfig {
+  return AssetConfig{
+    CSSFiles: []string{
+      "theme/assets/lib/normalize.min.css",
+      "theme/assets/lib/semantic.min.css",
+      "theme/assets/lib/fontawesome.min.css",
+      "theme/assets/lib/fonts.css",
+      "theme/assets/opus.css",
+    },
+    JSFiles: []string{
+      "theme/assets/lib/polyfill.min.js",
+      "theme/assets/lib/jquery-3.6.0.min.js",
+      "theme/assets/lib/d3.min.js",
+      "theme/assets/lib/semantic.min.js",
+      "theme/assets/lib/rxjs.umd.min.js",
+      "theme/assets/lib/petite-vue.iife.js",
+      "theme/assets/lib/director.min.js",
+      "theme/assets/services.js",
+    },
+  }
+}
+
+// GetDefaultAssetPaths returns the asset paths for the theme
+func GetDefaultAssetPaths() ([]string, []string) {
+  config := GetDefaultAssets()
+  return config.CSSFiles, config.JSFiles
+}
+
 type HTTPService struct {
   container   actions.Container
-  hub      *PubSubHub
-
-  server  *http.Server
-  handler *RouteHandler
-  router  *httprouter.Router
+  hub         *PubSubHub
+  server      *http.Server
+  handler     *RouteHandler
+  router      *httprouter.Router
 }
 
 func NewHTTPService(
@@ -35,14 +116,11 @@ func NewHTTPService(
   router := httprouter.New()
 
   router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Error(w, "Not found hurr durr", http.StatusNotFound)
-    // h.handleHTMLError(w, http.StatusNotFound, err.Error())
-    
+    http.Error(w, "Not found", http.StatusNotFound)
   })
 
   router.MethodNotAllowed = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-    // h.handleHTMLError(w, http.StatusNotFound, err.Error())
   })
 
   cm := quality.NewConnectionManager(quality.ConnectionConfig{
@@ -52,9 +130,9 @@ func NewHTTPService(
   })
 
   rl := quality.NewRateLimiter(
-    rate.Limit(100), // 100 req/sec
-    50,              // Burst capacity
-    time.Minute*10,  // Cleanup interval
+    rate.Limit(100),
+    50,
+    time.Minute*10,
   )
 
   handler := NewRouteHandler(
@@ -63,6 +141,7 @@ func NewHTTPService(
     cm,
     rl,
   )
+  
   cfg := container.Config()
   port := cfg.HTTP.Port
   service := &HTTPService{
@@ -71,58 +150,43 @@ func NewHTTPService(
       Handler: router,
     },
     handler: handler,
-    container:  container,
-    hub:     hub,
-    router:  router,
+    container: container,
+    hub:      hub,
+    router:   router,
   }
 
   service.registerRoutes(router)
-  // service.registerTopics()
 
   return service
 }
 
-func (s *HTTPService) registerTopics() {
-  s.hub.CreateTopic("before:action")
-  s.hub.CreateTopic("error:action")
-  s.hub.CreateTopic("success:action")
-}
-
-func (s *HTTPService) registerActionTopics(rc actions.HttpRoute) {
-  beforeAction := "before:" + rc.Action
-  s.hub.CreateTopic(beforeAction)
-  errorAction := "error:" + rc.Action
-  s.hub.CreateTopic(errorAction)
-  successAction := "success:" + rc.Action
-  s.hub.CreateTopic(successAction)
-  log.Println(beforeAction, errorAction, successAction)
-}
-
 func (s *HTTPService) registerRoutes(router *httprouter.Router) {
-  // Serve static files from multiple directories
-  staticDirs := []string{
-    "./resources/assets",
+  // Serve static files from the resources/static directory
+  staticDir := filepath.Join(ResourcesDir, "static")
+  if _, err := os.Stat(staticDir); err == nil {
+    fs := http.FileServer(http.Dir(staticDir))
+    // Mount at /static/
+    router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static/", fs))
+    log.Printf("Serving static files from %s at /static/", staticDir)
+    
+    // Also support old /assets/ path for backward compatibility
+    router.Handler(http.MethodGet, "/assets/*filepath", http.StripPrefix("/assets/", fs))
+    log.Printf("Serving static files from %s at /assets/ (backward compatibility)", staticDir)
   }
-
-  for _, dir := range staticDirs {
-    if _, err := os.Stat(dir); err == nil {
-      // Convert httprouter to handle static files
-      fs := http.FileServer(http.Dir(dir))
-      prefix := "/assets/"
-      router.Handler(http.MethodGet, prefix+"*filepath", http.StripPrefix(prefix, fs))
-      log.Printf("Serving static files from %s at %s", dir, prefix)
-    }
-  }
-
-  // TODO: webhook route
 
   // Register providers
   cfg := s.container.Config()
   providers := cfg.Providers
   for _, provider := range providers {
-    providerPath := "./resources/consumers/" + provider + "/provider.yml"
+    // Look for provider.yml in the resources/consumers/ directory
+    providerPath := filepath.Join(ResourcesDir, ConsumersDir, provider, "provider.yml")
+    
+    // Check if provider exists
+    if _, err := os.Stat(providerPath); os.IsNotExist(err) {
+      log.Printf("Provider config not found at %s", providerPath)
+      continue
+    }
 
-    // Define default provider configuration
     defaultProviderConfig := &actions.ProviderConfig{
         Provider: actions.ProviderDefinition{
             Name:    provider,
@@ -141,9 +205,7 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
         },
     }
     
-    // Load provider config with optional default
     providerConfig, err := actions.LoadProviderConfig(providerPath, defaultProviderConfig)
-
     if err != nil {
       log.Printf("Failed to load provider config for %s, using defaults: %v", provider, err)
       providerConfig = defaultProviderConfig
@@ -157,16 +219,16 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
           Backoff: 10,
         },
       }
-      fmt.Println("SUBSCRIBED!!!")
-      s.hub.Subscribe(sub.Topic, sub.Action, opts)
+      log.Println("SUBSCRIBED!!!")
+      if s.hub != nil {
+        s.hub.Subscribe(sub.Topic, sub.Action, opts)
+      }
     }
 
-    var fullPath string
     for _, rc := range providerConfig.Provider.Http.Api.Routes {
       rc.Provider = providerConfig.Provider.Name
-
-      fullPath = path.Join("/", providerConfig.Provider.Http.Api.Prefix, rc.Pattern)
-      // Convert HTTP method to httprouter format
+      fullPath := path.Join("/", providerConfig.Provider.Http.Api.Prefix, rc.Pattern)
+      
       method := "GET"
       if rc.Method != "" {
         method = rc.Method
@@ -174,9 +236,6 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
       
       router.Handle(method, fullPath, s.handler.HandleHTTPRouter(rc))
       log.Println("api route:", fullPath, rc.Method)
-      
-      // pubsub topics
-      // s.registerActionTopics(rc)
     }
 
     for _, rc := range providerConfig.Provider.Http.Views.Routes {
@@ -186,8 +245,7 @@ func (s *HTTPService) registerRoutes(router *httprouter.Router) {
         rc.Document = providerConfig.Provider.Http.Views.Document
       }
       
-      fullPath = path.Join("/", providerConfig.Provider.Http.Views.Prefix, rc.Pattern)
-      // Views typically use GET method
+      fullPath := path.Join("/", providerConfig.Provider.Http.Views.Prefix, rc.Pattern)
       router.Handle(http.MethodGet, fullPath, s.handler.HandleHTTPRouter(rc))
       log.Println("view route:", fullPath, rc.Method)
     }
@@ -199,12 +257,10 @@ func (s *HTTPService) Start() error {
 }
 
 func (s *HTTPService) Shutdown(ctx context.Context) error {
-  // Stop rate limiter cleanup goroutine
   if s.handler.rl != nil {
     s.handler.rl.Stop()
   }
   
-  // Close connection manager
   if s.handler.cm != nil {
     s.handler.cm.Close()
   }
@@ -212,40 +268,41 @@ func (s *HTTPService) Shutdown(ctx context.Context) error {
 }
 
 type RouteHandler struct {
-  hub      *PubSubHub
+  hub       *PubSubHub
   container actions.Container
-  cm       *quality.ConnectionManager
-  rl       *quality.RateLimiter
+  cm        *quality.ConnectionManager
+  rl        *quality.RateLimiter
+  // Cache for template functions to avoid re-parsing on each request
+  templateFuncs template.FuncMap
 }
 
-// Update NewRouteHandler
 func NewRouteHandler(
   hub *PubSubHub,
   container actions.Container,
   cm *quality.ConnectionManager,
   rl *quality.RateLimiter,
 ) *RouteHandler {
-
-  handler := &RouteHandler{
-    hub:   hub,
+  return &RouteHandler{
+    hub:       hub,
     container: container,
-    cm:       cm,
-    rl:       rl,
+    cm:        cm,
+    rl:        rl,
+    templateFuncs: template.FuncMap{
+      // Add any custom template functions here
+      "safeHTML": func(s string) template.HTML {
+        return template.HTML(s)
+      },
+    },
   }
-  
-  return handler
 }
 
-// HandleHTTPRouter returns an httprouter.Handle function
 func (h *RouteHandler) HandleHTTPRouter(rc actions.HttpRoute) httprouter.Handle {
   return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    // Use shared rate limiter
     if !h.rl.GetVisitor(r.RemoteAddr).Allow() {
       http.Error(w, "too many requests", http.StatusTooManyRequests)
       return
     }
 
-    // Use shared connection manager
     h.cm.Acquire()
     defer h.cm.Release()
 
@@ -261,8 +318,6 @@ type SimpleClaims struct {
 }
 
 func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, ps httprouter.Params) error {
-  var err error
-
   ctx := r.Context()
   ctx = context.WithValue(ctx, "story", ps.ByName("story"))
   ctx = context.WithValue(ctx, "definition", ps.ByName("definition"))
@@ -271,10 +326,8 @@ func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc ac
     tokenHeader := r.Header.Get("Authorization")
     token := strings.ReplaceAll(tokenHeader, "Bearer: ", "")
     
-    // Remove auth.ParseBearerToken call and create simple claims
-    claims := &SimpleClaims{UserID: "anonymous"} // Default anonymous user
+    claims := &SimpleClaims{UserID: "anonymous"}
     if token != "" {
-      // For now, just pass through the token without validation
       claims = &SimpleClaims{UserID: "user_" + token}
     }
     
@@ -285,45 +338,80 @@ func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc ac
 
   switch {
   case rc.Template != "" && rc.Action == "" && rc.Payload == "":
-    err = h.handleTemplateRoute(w, r, rc)
+    err := h.handleTemplateRoute(w, r, rc)
+    if err != nil {
+      return err
+    }
   case rc.Method != "" && r.Method != rc.Method:
-    err = h.handleMethodNotAllowed(w, r)
+    return h.handleMethodNotAllowed(w, r)
   default:
-    err = h.handleActionRoute(w, r, rc, ps)
+    err := h.handleActionRoute(w, r, rc, ps)
+    if err != nil {
+      return err
+    }
   }
 
-  if err != nil {
-    return err
-  }
   return nil
 }
 
-func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute) error {
-  var err error
-  log.Println("render provider tpl", rc.Provider, rc.Template)
-
-  cssFiles := []string{
-    "theme/assets/lib/normalize.min.css",
-    "theme/assets/lib/semantic.min.css",
-    "theme/assets/lib/fontawesome.min.css",
-    "theme/assets/lib/fonts.css",
-    "theme/assets/opus.css",
+// findTemplatePath tries to find the template in various locations
+func (h *RouteHandler) findTemplatePath(provider, template string) (string, error) {
+  // Try new location: resources/consumers/{provider}/templates/{template}.html
+  newPath := filepath.Join(ResourcesDir, ConsumersDir, provider, TemplatesDir, template+".html")
+  if _, err := os.Stat(newPath); err == nil {
+    log.Printf("Found template at: %s", newPath)
+    return newPath, nil
   }
   
-  jsFiles := []string{
-    "theme/assets/lib/polyfill.min.js",
-    "theme/assets/lib/jquery-3.6.0.min.js",
-    "theme/assets/lib/d3.min.js",
-    "theme/assets/lib/semantic.min.js",
-    "theme/assets/lib/rxjs.umd.min.js",
-    "theme/assets/lib/petite-vue.iife.js",
-    "theme/assets/lib/director.min.js",
-    "theme/assets/services.js",
+  // Try new location without .html extension (if template already includes it)
+  newPathNoExt := filepath.Join(ResourcesDir, ConsumersDir, provider, TemplatesDir, template)
+  if _, err := os.Stat(newPathNoExt); err == nil {
+    log.Printf("Found template at: %s", newPathNoExt)
+    return newPathNoExt, nil
   }
-  theme := h.container.Theme()
-  err = theme.LoadAssets(cssFiles, jsFiles)
+  
+  // Try legacy location: resources/consumers/{provider}/theme/{template}.html
+  legacyPath := filepath.Join(ResourcesDir, ConsumersDir, provider, LegacyTemplatesDir, template+".html")
+  if _, err := os.Stat(legacyPath); err == nil {
+    log.Printf("Found template at (legacy): %s", legacyPath)
+    return legacyPath, nil
+  }
+  
+  // Try legacy location without .html extension
+  legacyPathNoExt := filepath.Join(ResourcesDir, ConsumersDir, provider, LegacyTemplatesDir, template)
+  if _, err := os.Stat(legacyPathNoExt); err == nil {
+    log.Printf("Found template at (legacy): %s", legacyPathNoExt)
+    return legacyPathNoExt, nil
+  }
+  
+  return "", fmt.Errorf("template not found: %s (tried: %s, %s, %s, %s)", 
+    template, newPath, newPathNoExt, legacyPath, legacyPathNoExt)
+}
+
+func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute) error {
+  log.Println("render provider tpl", rc.Provider, rc.Template)
+
+  // Find the template path
+  templatePath, err := h.findTemplatePath(rc.Provider, rc.Template)
   if err != nil {
     return err
+  }
+
+  // Load assets using paths relative to resources/
+  cssFiles, jsFiles := GetDefaultAssetPaths()
+  
+  theme := h.container.Theme()
+  
+  // Try to load from simplified structure first
+  err = theme.LoadAssets(cssFiles, jsFiles)
+  if err != nil {
+    // Fallback to legacy structure
+    log.Printf("Failed to load assets from simplified structure, trying legacy: %v", err)
+    legacyAssets := GetLegacyAssets()
+    err = theme.LoadAssets(legacyAssets.CSSFiles, legacyAssets.JSFiles)
+    if err != nil {
+      return fmt.Errorf("failed to load assets: %w", err)
+    }
   }
 
   data := map[string]interface{}{
@@ -331,10 +419,23 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
     "Route":  rc,
   }
 
-  err = theme.Render(w, rc.Document, rc.Provider, rc.Template, data)
+  // Parse and execute template directly from filesystem (reloads on each request)
+  // This ensures templates are updated without recompiling
+  tmpl, err := template.New(filepath.Base(templatePath)).Funcs(h.templateFuncs).ParseFiles(templatePath)
   if err != nil {
-    return err
+    log.Printf("Failed to parse template: %v", err)
+    return fmt.Errorf("failed to parse template: %w", err)
   }
+
+  // Execute the template
+  w.Header().Set("Content-Type", "text/html; charset=utf-8")
+  err = tmpl.Execute(w, data)
+  if err != nil {
+    log.Printf("Failed to execute template: %v", err)
+    return fmt.Errorf("failed to execute template: %w", err)
+  }
+  
+  log.Printf("Successfully rendered template: %s", templatePath)
   return nil
 }
 
@@ -344,14 +445,11 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
     return err
   }
 
-  err = h.hub.Publish("before:action", payload)
-  if err != nil {
-    return err
+  if h.hub != nil {
+    h.hub.Publish("before:action", payload)
+    h.hub.Publish("before:"+rc.Action, payload)
   }
-  err = h.hub.Publish("before:" + rc.Action, payload)
-  if err != nil {
-    return err
-  }
+  
   registry := h.container.Registry()
   actionFunc, ok := registry.ResolveAction(rc.Action)
   if !ok {
@@ -360,18 +458,16 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
 
   action := actions.NewAction(rc.Action, payload, h.container, actionFunc)
   if err := action.Execute(); err != nil {
-    h.hub.Publish("error:" + rc.Action, payload)
-    h.hub.Publish("error:action", payload)
+    if h.hub != nil {
+      h.hub.Publish("error:"+rc.Action, payload)
+      h.hub.Publish("error:action", payload)
+    }
     return err
   }
 
-  err = h.hub.Publish("success:"+rc.Action, payload)
-  if err != nil {
-    return err
-  }
-  err = h.hub.Publish("success:action", payload)
-  if err != nil {
-    return err
+  if h.hub != nil {
+    h.hub.Publish("success:"+rc.Action, payload)
+    h.hub.Publish("success:action", payload)
   }
 
   err = h.handleResponse(w, r, rc, payload)
@@ -383,7 +479,6 @@ func (h *RouteHandler) handleActionRoute(w http.ResponseWriter, r *http.Request,
 
 func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, ps httprouter.Params) (actions.Payload, error) {
   if r.Body == nil {
-    //TODO: move to quality
     return nil, errors.New("empty request body")
   }
   defer r.Body.Close()
@@ -416,30 +511,27 @@ func (h *RouteHandler) bindPayload(w http.ResponseWriter, r *http.Request, rc ac
 }
 
 func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
-  var err error
-  cssFiles := []string{
-    "theme/assets/lib/normalize.min.css",
-    "theme/assets/lib/semantic.min.css",
-    "theme/assets/lib/fontawesome.min.css",
-    "theme/assets/lib/fonts.css",
-    "theme/assets/opus.css",
-  }
-  
-  jsFiles := []string{
-    "theme/assets/lib/polyfill.min.js",
-    "theme/assets/lib/jquery-3.6.0.min.js",
-    "theme/assets/lib/d3.min.js",
-    "theme/assets/lib/semantic.min.js",
-    "theme/assets/lib/rxjs.umd.min.js",
-    "theme/assets/lib/petite-vue.iife.js",
-    "theme/assets/lib/director.min.js",
-    "theme/assets/services.js",
-  }
-
-  theme := h.container.Theme()
-  err = theme.LoadAssets(cssFiles, jsFiles)
+  // Find the template path
+  templatePath, err := h.findTemplatePath(rc.Provider, rc.Template)
   if err != nil {
     return err
+  }
+
+  // Load assets using paths relative to resources/
+  cssFiles, jsFiles := GetDefaultAssetPaths()
+  
+  theme := h.container.Theme()
+  
+  // Try to load from simplified structure first
+  err = theme.LoadAssets(cssFiles, jsFiles)
+  if err != nil {
+    // Fallback to legacy structure
+    log.Printf("Failed to load assets from simplified structure, trying legacy: %v", err)
+    legacyAssets := GetLegacyAssets()
+    err = theme.LoadAssets(legacyAssets.CSSFiles, legacyAssets.JSFiles)
+    if err != nil {
+      return fmt.Errorf("failed to load assets: %w", err)
+    }
   }
 
   data := map[string]interface{}{
@@ -447,14 +539,20 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
     "Route":  rc,
   }
 
-  err = theme.Render(w, rc.Document, rc.Provider, rc.Template, data)
+  // Parse and execute template directly from filesystem (reloads on each request)
+  tmpl, err := template.New(filepath.Base(templatePath)).Funcs(h.templateFuncs).ParseFiles(templatePath)
   if err != nil {
-    // TODO: move to quality
-    return fmt.Errorf("failed to render template: %w", err)
+    log.Printf("Failed to parse template: %v", err)
+    return fmt.Errorf("failed to parse template: %w", err)
   }
 
   w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  w.WriteHeader(http.StatusOK)
+  err = tmpl.Execute(w, data)
+  if err != nil {
+    log.Printf("Failed to execute template: %v", err)
+    return fmt.Errorf("failed to execute template: %w", err)
+  }
+
   return nil
 }
 
@@ -467,9 +565,8 @@ func (h *RouteHandler) handleResponse(w http.ResponseWriter, r *http.Request, rc
 
 func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err error, rc actions.HttpRoute) {
   var status int
-  // TODO: review the shit out of this
   switch {
-  case errors.Is(err, quality.ErrPayloadBinding), errors.Is(err, quality.ErrValidation), errors.Is(err, quality.ErrValidation):
+  case errors.Is(err, quality.ErrPayloadBinding), errors.Is(err, quality.ErrValidation):
     status = http.StatusBadRequest
   case errors.Is(err, quality.ErrInvalidAction), errors.Is(err, quality.ErrInvalidPayload):
     status = http.StatusInternalServerError
@@ -477,6 +574,7 @@ func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err e
     status = http.StatusInternalServerError
   }
 
+  // Only write header if not already written
   if r.Method == http.MethodGet && rc.Template != "" {
     h.handleHTMLError(w, status, err.Error())
   } else {
@@ -485,16 +583,45 @@ func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err e
 }
 
 func (h *RouteHandler) handleHTMLError(w http.ResponseWriter, status int, message string) {
-  w.Header().Set("Content-Type", "text/html; charset=utf-8")
+  // Check if headers are already written
+  if w.Header().Get("Content-Type") == "" {
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+  }
+  
   data := map[string]interface{}{
     "Title":  "Opus",
+    "Error":  message,
   }
-  theme := h.container.Theme()
-  err := theme.Render(w, "", "", "", data)
-  if err != nil {
-    writeJSONError(w, status, "Request failed", err.Error())
+  
+  // Try to find an error template
+  errorTemplatePath, err := h.findTemplatePath("site", "error")
+  if err == nil {
+    tmpl, err := template.ParseFiles(errorTemplatePath)
+    if err == nil {
+      tmpl.Execute(w, data)
+      w.WriteHeader(status)
+      return
+    }
   }
+  
+  // Fallback to simple HTML error
   w.WriteHeader(status)
+  html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Error %d</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+    h1 { color: #d32f2f; }
+    .error { background: #ffebee; padding: 20px; border-radius: 4px; border-left: 4px solid #d32f2f; }
+  </style>
+</head>
+<body>
+  <h1>Error %d</h1>
+  <div class="error">%s</div>
+</body>
+</html>`, status, status, message)
+  w.Write([]byte(html))
 }
 
 func (h *RouteHandler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) error {
@@ -503,7 +630,6 @@ func (h *RouteHandler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Req
   return nil
 }
 
-// Helper functions
 func writeJSONResponse(w http.ResponseWriter, status int, data interface{}) error {
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(status)

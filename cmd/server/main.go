@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+    // The resources directory is at ./resources relative to the binary
+    // Since the binary is in cmd/server/, we need to go up two levels
+    // Or we can use an absolute path or environment variable
     resourcesDir := "./resources"
     
     // Define default service configuration
@@ -31,7 +34,7 @@ func main() {
         },
     }
     
-    // Load service config with optional default
+    // Load service config from resources directory
     config, err := actions.LoadServiceConfig(resourcesDir+"/service.yml", defaultServiceConfig)
     if err != nil {
         log.Fatal("Failed to load service config:", err)
@@ -48,7 +51,7 @@ func main() {
         }
     }()
 
-    // Initialize HTTP service without PubSub hub
+    // Initialize HTTP service without PubSub hub (pass nil)
     httpSvc := services.NewHTTPService(container, nil)
 
     // Create context for graceful shutdown
