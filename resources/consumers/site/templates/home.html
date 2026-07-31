@@ -1,9 +1,206 @@
-{{define "home"}}
-<div class="home">
-    <h2>Welcome to Opus</h2>
-    <p>This is the home page content.</p>
-    {{if .Data}}
-        <pre>{{.Data}}</pre>
-    {{end}}
+{{define "styles"}}
+<style>
+    .mermaid-container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        overflow-x: auto;
+        display: flex;
+        justify-content: center;
+        min-height: 400px;
+    }
+</style>
+{{end}}
+
+{{define "meta"}}
+<!-- silenzio -->
+{{end}}
+
+{{define "nav"}}
+<div id="nav" v-scope="navScope()" @vue:mounted="init" class="ui container">
+    {{template "nav-logo"}}
+    <div class="left menu">
+        <a class="item opus-teal" href="/#/about">About</a>
+        <a class="item opus-orange" href="/#/getting-started">Getting Started</a>
+    </div>
+    <div id="auth-menu" class="right menu">
+        <a href="/admin/auth#/register" v-show="!loggedIn" class="item opus-pink">Demo</a>
+        <a href="/admin/profile#/view" v-show="loggedIn" class="item opus-pink">Profile</a>
+        <span v-show="loggedIn" class="item opus-purple" @click="fire('auth:logout')">Logout</span>
+    </div>
 </div>
+{{end}}
+
+{{define "header"}}
+<div class="ui sticky">
+    <div class="ui menu">
+        {{template "nav"}}
+    </div>
+</div>
+{{end}}
+
+{{define "footer"}}
+<!-- silenzio -->
+{{end}}
+
+{{define "main"}}
+<div id="app" @vue:mounted="init">
+    <div class="ui container" style="min-height: 80vh;">
+
+
+        
+<div id="app" @vue:mounted="init">
+
+  <div id="nav" v-scope="navScope()" @vue:mounted="init" class="ui container">
+    <a href="/" class="header item nav-logo">
+      <span class="opus-orange">O</span>
+      <span class="opus-purple">P</span>
+        <span class="opus-pink">U</span>
+        <span class="opus-teal">S</span>
+    </a>
+    <div class="left menu">
+      <a class="item opus-teal" href="/admin#/stories">Stories</a>
+    </div>
+    <div id="auth-menu" class="right menu">
+      <a href="/admin/profile#/view" class="item opus-pink">Profile</a>
+      <span class="item opus-purple" @click="fire('auth:logout')">Logout</span>
+    </div>
+  </div>
+
+
+  <div class="ui container" style="min-height: 80vh;">
+
+    <!-- HOME -->
+    <div v-show="store.view.screen === 'home'" class="ui grid" style="margin-top: 5vh;">
+      <div class="sixteen wide column">
+        <p class="page-title opus-purple" style="text-align: center;" id="description"></p>
+        <h1 id="logo" class="logo home-title color-title"></h1>
+        <h2 id="slogan" class="home-slogan opus-purple"></h2>
+      </div>
+      <div class="seven wide column">
+      </div>
+      <div class="two wide column">
+        <a href="/#/about" class="ui huge animated fluid teal button" tabindex="0">
+          <div class="visible content">more</div>
+          <div class="hidden content">
+            <i class="right arrow icon"></i>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div v-show="store.view.screen === 'about'" class="ui grid" style="margin-top: 5vh;">
+      <div class="title-container">
+        <h1 class="page-title opus-teal" id="description">ABOUT</h1>      
+      </div>
+      <div class="content-container">
+
+        <h1 class="section-title opus-teal" id="description">PROTOTYPE ANYTHING</h1>      
+
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. </p>
+
+
+      </div>
+    </div>
+
+    <!-- GETTING STARTED -->
+    <div v-show="store.view.screen === 'getting-started'" class="ui grid" style="margin-top: 5vh;">
+      <div class="title-container">
+        <h1 class="page-title opus-orange" id="description">GETTING STARTED</h1>      
+      </div>
+      <div class="content-container">
+        
+        <h1 class="section-title opus-orange" id="description">INSTALL</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        
+        <h1 class="section-title opus-orange" id="description">DEPLOY</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        
+        <h1 class="section-title opus-orange" id="description">DESIGN & DEVELOP</h1>      
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>        
+      </div>
+
+    </div>
+
+    <!-- 404 -->
+    <div v-show="store.view.screen === 'err404'" class="ui grid" style="margin-top: 5vh;">
+      <p class="page-title color-description" id="description">NOT FOUND!</p>
+    </div>
+
+  </div>
+  <div v-show="store.view.screen !== 'home'" class="ui inverted segment" style="padding-bottom: 40px;">
+    <div class="ui container" style="margin-top: 2em;">
+        <div class="ui grid">
+          <div class="eight wide column">
+            <h3 class="cta">KEEP IN TOUCH</h3>
+          </div>
+          <div class="eight wide column">
+
+          <div class="ui huge wide input massive" style="width:100%;">
+            <input
+              type="text"
+              placeholder="email"
+              value=""
+            />
+            <button class="ui teal button">
+              i want updates!
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+</div>
+{{end}}
+
+{{define "template-scripts"}}
+<script>
+    // Your site-specific scripts
+</script>
+{{end}}
+
+{{define "template-scopes"}}
+<script>
+    function siteScope() {
+        const onRoute = (screen) => {
+            store.view.screen = screen ? screen : 'home';
+        }
+        var routes = {
+            '/': onRoute,
+            '/:screen': onRoute,
+        };
+        var router = Router(routes);
+        router.init();
+
+        return {
+            init() {},
+            store,
+        };
+    }
+    PetiteVue.createApp(siteScope()).mount("#app");
+</script>
 {{end}}

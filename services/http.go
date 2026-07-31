@@ -387,7 +387,7 @@ func (h *RouteHandler) findTemplatePath(provider, template string) (string, erro
   return "", fmt.Errorf("template not found: %s (tried: %s, %s, %s, %s)", 
     template, newPath, newPathNoExt, legacyPath, legacyPathNoExt)
 }
-// handleTemplateRoute renders a template using the theme adapter
+
 func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute) error {
   log.Println("render provider tpl", rc.Provider, rc.Template)
 
@@ -412,26 +412,27 @@ func (h *RouteHandler) handleTemplateRoute(w http.ResponseWriter, r *http.Reques
   data := map[string]interface{}{
     "Title":  "Opus",
     "Route":  rc,
+    "Lang":   "en",
   }
 
-  // Determine the document template (default: "page")
+  // Determine the document template from the route config
+  // Default to "page" if not specified
   document := "page"
   if rc.Document != "" {
     document = rc.Document
   }
 
-  // Use the ThemeAdapter's Render method
+  // Use the ThemeAdapter's Render method with the dynamic document
   err = theme.Render(w, document, rc.Provider, rc.Template, data)
   if err != nil {
     log.Printf("Failed to render template: %v", err)
     return fmt.Errorf("failed to render template: %w", err)
   }
   
-  log.Printf("Successfully rendered template: %s", rc.Template)
+  log.Printf("Successfully rendered template: %s with document: %s", rc.Template, document)
   return nil
 }
 
-// handleTemplateResponse renders a template response with payload data
 func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Request, rc actions.HttpRoute, p actions.Payload) error {
   // Load assets using paths relative to resources/
   cssFiles, jsFiles := GetDefaultAssetPaths()
@@ -455,15 +456,16 @@ func (h *RouteHandler) handleTemplateResponse(w http.ResponseWriter, r *http.Req
     "Title":  "Opus",
     "Route":  rc,
     "Data":   p,
+    "Lang":   "en",
   }
 
-  // Determine the document template (default: "page")
+  // Determine the document template from the route config
   document := "page"
   if rc.Document != "" {
     document = rc.Document
   }
 
-  // Use the ThemeAdapter's Render method
+  // Use the ThemeAdapter's Render method with the dynamic document
   err = theme.Render(w, document, rc.Provider, rc.Template, data)
   if err != nil {
     log.Printf("Failed to render template: %v", err)

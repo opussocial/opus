@@ -6,24 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
     {{.RenderedCss}}
+    {{template "styles" .}}
+    {{template "meta" .}}
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>{{.Title}}</h1>
-        </header>
-        <main>
-            {{template "home" .}}
-        </main>
-    </div>
+    {{template "header" .}}
+    {{template "main" .}}
+    {{template "footer" .}}
     {{.RenderedJs}}
-    
-    <script>
-        const data = {
-            title: '<% title %>',
-            description: '<% description %>'
-        };
-    </script>
+    {{template "module-store" .}}
+    {{template "template-scripts" .}}
+    {{template "template-scopes" .}}
+    {{template "module-scopes" .}}
 </body>
 </html>
 {{end}}

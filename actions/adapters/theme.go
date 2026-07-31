@@ -10,7 +10,6 @@ import (
     "io/ioutil"
     "html/template"
     "path/filepath"
-    "log"  // Add this import
     "golang.org/x/sync/singleflight"
     "github.com/opussocialcontent/opus-go/quality"
 )
@@ -18,7 +17,7 @@ import (
 // ThemeAdapter handles template loading and rendering
 type ThemeAdapter struct {
     basePath    string
-    document    string
+    document    string  // Default document name (e.g., "page")
     components  *template.Template
     templates   map[string]*template.Template
     templateExt string
@@ -31,9 +30,9 @@ type ThemeAdapter struct {
 func NewThemeAdapter(basePath, document string) *ThemeAdapter {
     ta := &ThemeAdapter{
         basePath:    basePath,
-        document: document,
+        document:    document,  // Store the default document name
         templates:   make(map[string]*template.Template),
-        templateExt: ".html", // default extension
+        templateExt: ".html",
         assets:      make(map[string]string),
     }
     return ta
@@ -112,9 +111,9 @@ func (ta *ThemeAdapter) Render(w http.ResponseWriter, document, consumer, view s
 
     w.Header().Set("Content-Type", "text/html; charset=utf-8")
     
-    // Execute the template hierarchy - this will render the document
-    // which should include the view template via {{template "home" .}}
-    return tpl.ExecuteTemplate(w, document, data)
+    // Always execute the "page" template
+    // This works because all document templates define "page"
+    return tpl.ExecuteTemplate(w, "page", data)
 }
 
 func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*template.Template, error) {
@@ -122,35 +121,58 @@ func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*templ
 
     // Singleflight protected load
     tpl, err, _ := ta.loader.Do(key, func() (interface{}, error) {
-        // 1. Base document (required) - search in multiple locations
-        basePath := filepath.Join(ta.basePath, "theme", document+ta.templateExt)
+        // 1. Base document (dynamic filename) - looks for whatever document name is passed
+        // But always defines it as "page" template
+        docPaths := []string{
+            filepath.Join(ta.basePath, "theme", document+ta.templateExt),
+            filepath.Join(ta.basePath, "consumers", consumer, "theme", document+ta.templateExt),
+            filepath.Join(ta.basePath, "consumers", consumer, "templates", document+ta.templateExt),
+        }
         
-        // Check if base template exists in theme directory
-        if _, err := os.Stat(basePath); os.IsNotExist(err) {
-            // Try alternative location in consumers
-            basePath = filepath.Join(ta.basePath, "consumers", consumer, "theme", document+ta.templateExt)
-            if _, err := os.Stat(basePath); os.IsNotExist(err) {
-                return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("base document template not found: %s", document))
+        var docPath string
+        for _, path := range docPaths {
+            if _, err := os.Stat(path); err == nil {
+                docPath = path
+                break
             }
         }
         
-        // Parse the base document template with DEFAULT delimiters (removed Delims)
-        tpl, err := template.New("").ParseFiles(basePath)
+        if docPath == "" {
+            return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("document template file not found: %s (tried: %v)", document, docPaths))
+        }
+        
+        // Parse the base document template
+        // IMPORTANT: Use "page" as the template name, not the document variable
+        tpl, err := template.New("page").Delims("{{", "}}").ParseFiles(docPath)
         if err != nil {
-            return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("base template error: %v", err))
+            return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("document template error: %v", err))
         }
 
-        // 2. Theme overrides (optional) - theme.html
-        themePath := filepath.Join(ta.basePath, "consumers", consumer, "theme", "theme"+ta.templateExt)
-        if _, err := os.Stat(themePath); err == nil {
-            tpl, err = tpl.ParseFiles(themePath)
-            if err != nil {
-                log.Printf("Warning: failed to parse theme template: %v", err)
+        // 2. THEME OVERRIDE (REQUIRED) - theme.html
+        themePaths := []string{
+            filepath.Join(ta.basePath, "consumers", consumer, "theme", "theme"+ta.templateExt),
+            filepath.Join(ta.basePath, "consumers", consumer, "templates", "theme"+ta.templateExt),
+        }
+        
+        var themePath string
+        for _, path := range themePaths {
+            if _, err := os.Stat(path); err == nil {
+                themePath = path
+                break
             }
+        }
+        
+        if themePath == "" {
+            return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("theme template not found for consumer: %s", consumer))
+        }
+
+        // Parse the theme template
+        tpl, err = tpl.ParseFiles(themePath)
+        if err != nil {
+            return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("theme template error: %v", err))
         }
 
         // 3. View template (required) - home.html, etc.
-        // Try multiple locations for the view template
         viewPaths := []string{
             filepath.Join(ta.basePath, "consumers", consumer, "templates", view+ta.templateExt),
             filepath.Join(ta.basePath, "consumers", consumer, "theme", view+ta.templateExt),

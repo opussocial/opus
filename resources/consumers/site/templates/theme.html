@@ -1,6 +1,124 @@
-{{define "theme"}}
-    <!-- Theme-specific overrides -->
-    <div class="theme-override">
-        <p>Theme overrides go here</p>
+{{define "styles"}}
+<!-- Default styles - override in child templates -->
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+</style>
+{{end}}
+
+{{define "meta"}}
+<!-- Default meta tags -->
+<meta name="description" content="Opus - Tell your story">
+<meta name="theme-color" content="#00B5AD">
+{{end}}
+
+{{define "nav-logo"}}
+<!-- Nav Logo Template -->
+<a href="/" class="logo">
+    <span class="opus-orange">O</span>
+    <span class="opus-purple">P</span>
+    <span class="opus-pink">U</span>
+    <span class="opus-teal">S</span>
+</a>
+{{end}}
+
+{{define "nav"}}
+<!-- Default navigation -->
+<div id="nav" class="ui container">
+    {{template "nav-logo"}}
+    <div class="left menu">
+        <a class="item" href="/">Home</a>
     </div>
+    <div id="auth-menu" class="right menu">
+        <a href="/admin/auth#/register" class="item">Login</a>
+    </div>
+</div>
+{{end}}
+
+{{define "header"}}
+<header>
+    <div class="ui sticky">
+        <div class="ui menu">
+            {{template "nav"}}
+        </div>
+    </div>
+</header>
+{{end}}
+
+{{define "footer"}}
+<footer>
+    <div class="ui container">
+        <p>&copy; 2026 Opus. All rights reserved.</p>
+    </div>
+</footer>
+{{end}}
+
+{{define "main"}}
+<div id="app" @vue:mounted="init">
+    <div class="ui container" style="min-height: 80vh;">
+        <h1>Welcome to Opus</h1>
+        <p>Default content - override me in child templates</p>
+    </div>
+</div>
+{{end}}
+
+{{define "loader"}}
+<!-- Default loader -->
+<div v-show="store.view.loading" class="ui active dimmer">
+    <div class="ui loader"></div>
+</div>
+{{end}}
+
+{{define "message-list"}}
+<!-- Default message list -->
+<div v-show="store.view.messages.length > 0" class="ui message">
+    <ul>
+        <li v-for="message in store.view.messages"><%message%></li>
+    </ul>
+</div>
+{{end}}
+
+{{define "module-store"}}
+<script>
+    // Default store - override in child templates
+    const store = PetiteVue.reactive({
+        model: {},
+        view: {
+            screen: 'home',
+            loading: false,
+            messages: []
+        }
+    });
+</script>
+{{end}}
+
+{{define "template-scripts"}}
+<!-- Default scripts - override in child templates -->
+{{end}}
+
+{{define "template-scopes"}}
+<script>
+    // Default scope - override in child templates
+    function defaultScope() {
+        return {
+            store,
+            init() {
+                console.log('Default scope initialized');
+            }
+        };
+    }
+    PetiteVue.createApp(defaultScope()).mount("#app");
+</script>
+{{end}}
+
+{{define "module-scopes"}}
+<!-- Default module scopes - override in child templates -->
 {{end}}

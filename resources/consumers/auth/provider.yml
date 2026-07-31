@@ -54,7 +54,7 @@ consumer:
           template: profile
   jobs:
     - name: daily:cleanup
-      schedule: @daily
+      schedule: daily
       action: cleanup
       timeout: 300  # in seconds
     - name: hourly:stats
