@@ -1,0 +1,206 @@
+<% define "meta" %>
+<% end %>
+
+<% define "nav" %>
+      <div id="nav" v-scope="navScope()" @vue:mounted="init" class="ui container">
+        <% template "nav-logo" %>
+        <div class="left menu">
+          <a class="item opus-teal" href="/admin#/stories">Stories</a>
+        </div>
+        <div id="auth-menu" class="right menu">
+          <a href="/admin/profile#/view" class="item opus-pink">Profile</a>
+          <span class="item opus-purple" @click="fire('auth:logout')">Logout</span>
+        </div>
+      </div>
+<% end %>
+
+<% define "header" %>
+  <h1 class="login-title" style="text-align: center;"> 
+    <br>
+    <a href="/" class="logo">
+      <span class="opus-orange">O</span>
+      <span class="opus-purple">P</span>
+        <span class="opus-pink">U</span>
+        <span class="opus-teal">S</span>
+    </a>
+  </h1>
+<% end %>
+
+<% define "footer" %>
+<% end %>
+
+<% define "module-store" %>
+  <script>
+    const store = PetiteVue.reactive({
+      model: {
+        stories: [],
+        story: {
+          id: 0,
+          name: "",
+          slug: "",
+          definitions: [],
+          roles: [],
+          relationships: [],
+          settings: [],
+        },
+        definition: {
+          id: 0,
+          name: "",
+          slug: "",
+        },
+        relationship: {
+          id: 0,
+          name: "",
+          slug: "",
+          source: "",
+          target: "",
+        },
+        role: {
+          id: 0,
+          name: "",
+          slug: "",
+        },
+        setting: {
+          id: 0,
+          name: "",
+          slug: "",
+          value: "",
+        },
+      },
+      view: {
+        screen: "",
+        title: "",
+        loading: false,
+        messages: [],
+      },
+    });
+
+    const setList = (data) => {
+        store.model.stories = data;
+    };
+
+    const setModel = (data) => {
+        store.model.story = data;
+        store.model.role.storyId = data.id;
+        store.model.definition.storyId = data.id;
+        store.model.relationship.storyId = data.id;
+        store.model.setting.storyId = data.id;
+    };
+
+    const setDefinition = (data) => {
+      store.model.definition = data;
+    };
+
+    const setRole = (data) => {
+      store.model.role = data;
+    };
+
+    const setRelationship = (data) => {
+      store.model.relationship = data;
+    };
+
+    const setSetting = (data) => {
+      store.model.setting = data;
+    };
+
+    const onLoadStories = () => {
+        def = {
+            method: 'get',
+            url: '/story',
+            event: "stories:loaded",
+        }
+        return useApi(def);
+    }
+
+    const onLoadStory = (slug) => {
+        store.view.loading = true;
+        def = {
+            method: 'get',
+            url: '/story/' + slug,
+            event: "story:loaded",
+        }
+        return useApi(def);
+    }
+
+    const onCreateStory = () => {
+        store.view.loading = true;
+        const def = {
+            method: "post",
+            url: '/story',
+            model: store.model.story,
+            event: "story:created",
+        }
+        return useApi(def);
+    };
+
+    const onUpdateStory = () => {
+        store.view.loading = true;
+        const def = {
+            method: "put",
+            url: '/story/' + store.model.story.slug,
+            model: store.model.story,
+            event: "story:updated",
+        }
+        return useApi(def);
+    };
+
+    const onDeleteStory = () => {
+      store.view.loading = true;
+      const def = {
+          method: "delete",
+          url: '/story/' + store.model.story.slug,
+          event: "story:deleted",
+      };
+      return useApi(def);
+    };
+
+    const onAddDefinition = () => {
+      store.view.loading = true;
+      
+      const def = {
+          model: store.model.definition,
+          method: "post",
+          url: '/story/' + store.model.story.slug + '/def',
+          event: "definition:created",
+      };
+      return useApi(def);      
+    };
+
+    const onAddRole = (storyId) => {
+      store.view.loading = true;
+      const def = {
+          model: store.model.role,
+          method: "post",
+          url: '/story/' + store.model.story.slug + '/role',
+          event: "role:created",
+      };
+      return useApi(def);
+    };
+
+    const onAddRelationship = (storyId) => {
+      store.view.loading = true;
+      const def = {
+          model: store.model.relationship,
+          method: "post",
+          url: '/story/' + store.model.story.slug + '/relationship',
+          event: "relationship:created",
+      };
+      return useApi(def);      
+    };
+
+    const onAddSetting = () => {
+      store.view.loading = true;
+      const def = {
+          model: store.model.setting,
+          method: "post",
+          url: '/story/' + store.model.story.slug + '/setting',
+          event: "setting:created",
+      };
+      return useApi(def);      
+    };
+
+  </script>
+<% end %>
+
+<% define "module-scopes" %>
+<% end %>

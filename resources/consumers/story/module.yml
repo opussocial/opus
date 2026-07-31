@@ -1,0 +1,45 @@
+module:
+  name: story
+  depends: []
+  http:
+    api:
+      prefix: api/v1/story
+      routes:
+        - pattern: /
+          payload: story:results
+          action: story:index
+          method: GET
+        - pattern: /:story
+          payload: story
+          action: story:show
+          method: GET
+        - pattern: /
+          payload: story
+          action: story:create
+          method: POST
+        - pattern: /:story_id
+          payload: default:id
+          action: story:delete
+          method: DELETE
+        - pattern: /:story/def
+          payload: definition
+          action: definition:create
+          method: POST
+        # - pattern: /def/:def_id
+        #   payload: default:id
+        #   action: definition:delete
+        #   method: DELETE
+        - pattern: /:story/role
+          payload: role
+          action: role:create
+          method: POST
+        # - pattern: /role/:role_id
+        #   payload: roleault:id
+        #   action: role:delete
+        #   method: DELETE
+    views:
+      document: admin
+      prefix: /admin
+      routes:
+        - pattern: /
+          template: story

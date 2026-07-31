@@ -1,0 +1,664 @@
+<% define "styles" %>
+<style>
+    .form-input {
+        margin: 0.6em 0 !important;
+    }
+    .form-label-s {
+        text-align: right;
+        font-size: 2em;
+    }
+    .form-label-m {
+        text-align: right;
+        margin: 0.5em 0 !important;
+        font-size: 3em;
+    }
+    .form-label {
+        text-align: right;
+        margin: 0.2em 0 !important;
+        font-size: 4em;
+    }
+    .form-title {
+        text-align: left;
+        margin: 0.2em 0 !important;
+        font-size: 4em;
+    }
+</style>
+<% end %>
+
+<% define "stories" %>
+<div v-show="screen('list')" class="ui stackable grid">
+    <div class="row">
+        <div class="sixteen column">
+            <table class="ui celled table"> 
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Published</th>
+                        <th>actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr v-for="story in store.model.stories">
+                        <td>{{story.name}}</td>
+                        <td>{{story.slug}}</td>
+                        <td>
+                            <a :href="'#/'+story.slug+'/view'" class="ui button opus-orange small futura">EDIT</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<% end %>
+
+<% define "story" %>
+<!-- Create / Update Story -->
+<form v-show="screen('create') ||screen('edit') || screen('view')" class="ui form">  
+
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label">STORY</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div v-show="screen('create') || screen('edit')" class="ui input massive">
+                        <input v-model="store.model.story.name" class="form-input" type="text" placeholder="Enter story name">
+                    </div> 
+                    <div v-show="screen('view')" class="ui segment big">
+                        <p>{{store.model.story.name}}</p>
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                    <a :href="'#'+slug+'/edit'" v-show="screen('view')" class="ui button opus-orange massive futura">EDIT</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Handle Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label">@</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div v-show="showOnCreate || showOnEdit" class="ui input massive">
+                        <input v-model="store.model.story.slug" class="form-input" type="text" placeholder="Enter your @">
+                    </div> 
+                    <div v-show="!showOnEdit && !showOnCreate" class="ui segment big">
+                        <p>{{store.model.story.slug}}</p>
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                    <div v-show="showOnEdit" class="ui message">
+                        <ul class="message-list">
+                            <li>
+                            Please enter a valid handle
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<% end %>
+
+<% define "definitions" %>
+
+<div v-show="showOnView" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">DEFINITIONS</h2>
+
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/definition">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr v-for="definition in store.model.story.definitions">
+                            <td>{{definition.name}}</td>
+                        <td>
+                            <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                        </td>
+                        </tr>
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Definition -->
+<form v-show="showOnAddDefinition || showOnEditDefinition" class="ui form">  
+
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label-m">DEFINITION</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div class="ui input massive">
+                        <input v-model="store.model.definition.name" class="form-input" type="text" placeholder="Enter definition name">
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+         
+
+<div v-show="showOnEditDefinition" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">SCHEMAS</h2>
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/role">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Schema</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" v-if="store.definition.schemas">
+                        <tr v-for="schema in store.definition.schemas">
+                            <td>{{schema.name}}</td>
+                        </tr>
+                    </tbody>                            
+                </table>
+
+                <div class="pagination-container">
+                    <div class="ui pagination menu" id="pagination">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+         
+
+<div v-show="showOnEditDefinition" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">STATUS</h2>
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/role">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" v-if="store.role">
+                        <tr v-for="status in store.definition.status">
+                            <td>{{status.name}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
+                        </tr>
+                    </tbody>                            
+                </table>
+
+                <div class="pagination-container">
+                    <div class="ui pagination menu" id="pagination">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div v-show="showOnEditDefinition" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">STATE MACHINE</h2>
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/role">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>State</th>
+                            <th>Next</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" v-if="store.role">
+                        <tr v-for="status in store.definition.stateMachine">
+                            <td>{{state.status.name}}</td>
+                            <td>{{state.next.name}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
+                        </tr>
+                    </tbody>                            
+                </table>
+
+                <div class="pagination-container">
+                    <div class="ui pagination menu" id="pagination">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<% end %>
+
+<% define "roles" %>
+<div v-show="showOnView" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">ROLES</h2>
+
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/role">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr v-for="role in store.model.story.roles">
+                            <td>{{role.name}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Role -->
+<form v-show="showOnAddRole || showOnEditRole" class="ui form">  
+
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label">ROLE</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div class="ui input massive">
+                        <input v-model="store.model.role.name" class="form-input" type="text" placeholder="Enter role name">
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Add Permissions -->
+<div v-show="showOnEditRole" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">PERMISSIONS</h2>
+                    <a v-show="showOnView" class="ui button opus-orange massive futura" href="#/add/role">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Action</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" v-if="store.role">
+                        <tr v-for="permissions in store.role.permissions">
+                            <td>{{permission.name}}</td>
+                            <td>{{permission.action}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
+                        </tr>
+                    </tbody>                            
+                </table>
+
+                <div class="pagination-container">
+                    <div class="ui pagination menu" id="pagination">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Role -->
+<form v-show="screen('add-role') || screen('edit-role')" class="ui form">  
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label-m">PERMISSION</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+<!--                            
+                    <div class="ui input massive">
+                        <input v-model="store.model.role.name" class="form-input" type="text" placeholder="Enter role name">
+                    </div> 
+-->                        </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<% end %>
+
+<% define "relationships" %>
+<!-- RELATIONSHIPS  -->
+<div v-show="screen('view')" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">RELATIONSHIPS</h2>
+                    <a v-show="screen('view')" class="ui button opus-orange massive futura" href="#/add/definition">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr v-for="relationship in store.model.story.relationships">
+                            <td>{{relationship.name}}</td>
+                            <td>{{relationship.source}}</td>
+                            <td>{{relationship.target}}</td>
+                            <td>
+                                <a :href="'#/definition/'+story.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
+                        </tr>
+                    </tbody>   
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add relationship -->
+<form v-show="screen('add-relationship') || screen('edit-relationship')" class="ui form">  
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label-m">RELATIONSHIP</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div class="ui input massive">
+                        <input v-model="store.model.relationship.name" class="form-input" type="text" placeholder="Enter relationship name">
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<% end %>
+
+<% define "settings" %>
+<!-- SETTINGS  -->
+<div v-show="screen('view')" class="field-row field">
+    <div class="ui stackable grid">
+        <div class="row">
+            <div class="six wide computer five wide tablet sixteen wide mobile column">
+                <h2 class="futura opus-teal form-title">SETTINGS</h2>
+                    <a v-show="screen('view')" class="ui button opus-orange massive futura" href="#/add/setting">ADD</a>
+            </div>
+            <div class="ten wide computer five wide tablet sixteen wide mobile column">
+                <table class="ui celled table"> 
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Published</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr v-for="setting in store.model.story.settings">
+                            <td>{{setting.name}}</td>
+                            <td>{{setting.value}}</td>
+                            <td>
+                                <a :href="'#/setting/'+setting.slug+'/edit'" class="ui button opus-orange small futura">EDIT</a>                            
+                            </td>
+                        </tr>
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Setting -->
+<form v-show="screen('add-setting') || screen('edit-setting')" class="ui form">  
+
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label-m">SETTING</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div class="ui input massive">
+                        <input v-model="store.model.setting.name" class="form-input" type="text" placeholder="Enter setting name">
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Field -->
+    <div class="field-row field">
+        <div class="ui stackable grid">
+            <div class="row">
+                <div class="four wide computer five wide tablet sixteen wide mobile column">
+                    <h2 class="futura opus-teal form-label-m">VALUE</h2>
+                </div>
+                <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                    <div class="ui input massive">
+                        <input v-model="store.model.setting.value" class="form-input" type="text" placeholder="Enter setting value">
+                    </div> 
+                </div> 
+                <div class="four wide computer four wide tablet sixteen wide mobile column">
+                </div>
+            </div>
+        </div>
+    </div>
+</form>        
+<% end %>
+
+<% define "header" %>
+  <div class="ui sticky"> 
+    <div class="ui menu">
+      <% template "nav" %>
+    </div>
+  </div>
+  <div id="story-header" @vue:mounted="init" class="ui container">
+      <h1 id="header-title" class="page-form-title futura opus-teal"> 
+        {{store.view.title}}
+      </h1>
+  </div>
+<% end %>
+
+<% define "main" %>
+<div id="app" @vue:mounted="init">
+  
+  <% template "loader" %>
+
+  <div v-show="!store.view.loading" class="main-container">
+    <div class="ui container">
+        <div class="ui menu">
+          <div id="nav" class="ui container">
+            <div class="left menu">
+              <a class="item opus-teal" href="/admin#/stories">Stories</a>
+              <a class="item opus-teal" href="/admin#/create">Create</a>
+            </div>
+          </div>
+        </div>
+
+        <% template "stories" %>
+        <% template "story" %>
+        <% template "definitions" %>
+        <% template "roles" %>
+        <% template "relationships" %>
+        <% template "settings" %>
+
+        <form class="ui form">  
+            <!-- ACTION Buttons -->
+            <div class="field">
+                <div class="ui stackable grid">
+                    <div class="row">
+                        <div class="four wide computer five wide tablet sixteen wide mobile column">
+
+                        </div>
+                        <div class="eight wide computer seven wide tablet sixteen wide mobile column">
+                            
+                            <a :href="'#/view/' + slug" v-show="!screen('view')" class="ui button massive futura">BACK</a>
+
+                            <!--STORY-->
+                            <div @click="fire('story:create')" v-show="screen('create')" class="ui button opus-orange massive futura">CREATE</div>
+                            <div v-show="screen('edit')" class="ui button opus-orange massive futura" @click="fire('story:update')">UPDATE</div>
+
+                            <!--ROLE-->
+                            <div v-show="screen('add-role')" class="ui button opus-orange massive futura" @click="fire('role:create')">ADD</div>
+                            <div v-show="screen('edit-role')" class="ui button opus-orange massive futura" @click="fire('role:update')">UPDATE</div>
+
+                            <!--DEFINITION-->
+                            <div v-show="screen('add-definition')" class="ui button opus-orange massive futura" @click="fire('definition:create')">ADD</div>
+                            <div v-show="screen('edit-definition')" class="ui button opus-orange massive futura" @click="fire('definition:update')">UPDATE</div>
+
+                            <!--SETTING-->
+                            <div v-show="screen('add-setting')" class="ui button opus-orange massive futura" @click="fire('setting:create')">ADD</div>
+                            <div v-show="screen('edit-setting')" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
+
+                            <!--RELATIONSHIP-->
+                            <div v-show="screen('add-relationship')" class="ui button opus-orange massive futura" @click="fire('relationship:create')">ADD</div>
+                            <div v-show="screen('edit-relationship')" class="ui button opus-orange massive futura" @click="fire('setting:update')">UPDATE</div>
+
+                        </div>
+                        <div class="four wide computer four wide tablet column">
+                            <!-- Empty column for alignment -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</div>
+
+<% end %>
+
+<%define "template-scopes"%>
+  <script>
+
+    const routes = {
+        '/': onListRoute,
+        '/stories': useRoute('list', onLoadStories),
+        '/create': useRoute('create'),
+        '/:slug /view': useRoute('view', onLoadStory),
+        '/:slug /edit': useRoute('edit', onLoadStory),
+        '/definition/add': useRoute('add-definition'),
+        '/definition/:slug/edit': useRoute('edit-definition', setDefinition),
+        '/role/add': useRoute('add-role'),
+        '/role/:slug/edit': useRoute('edit-role', setRole),
+        '/setting/add': useRoute('add-relationship', setRelationship),
+        '/setting/:slug/edit': useRoute('add-relationship'),
+        '/relationship/add': useRoute('add-setting'),
+        '/relationship/:slug/edit': useRoute('edit-setting', setSetting),
+    };
+
+    const subscriptions = {
+        "stories:loaded": setList,
+        "story:loaded": setModel,
+        "story:create": onCreateStory,
+        "story:update": onUpdateStory,
+        "role:create": onAddRole,
+        "role:update": onUpdateRole,
+        "definition:create": onAddDefinition,
+        "definition:update": onUpdateDefinition,
+        "relationship:create": onAddRelationship,
+        "relationship:update": onUpdateRelationship,
+        "setting:create": onAddSetting,
+        "setting:update": onUpdateSetting,
+    };
+
+    const behavior = {
+        routes: routes,
+        subscriptions: subscriptions,
+        init() {
+            if (!localStorage.getItem("auth:token")) {
+                window.location.href = "/admin/auth#/login";
+            }
+        },
+    };
+
+    const component = new Component(behavior, store);
+    component.subscribe(bus)
+             .route()
+             .mount("#app");
+
+    </script>
+<%end%>
