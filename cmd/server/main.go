@@ -9,6 +9,7 @@ import (
     "time"
     
     "github.com/opussocialcontent/opus-go/actions"
+    "github.com/opussocialcontent/opus-go/providers/auth"
     "github.com/opussocialcontent/opus-go/services"
 )
 
@@ -50,6 +51,14 @@ func main() {
             log.Printf("Error closing container: %v", err)
         }
     }()
+
+    // Register enabled providers into the action registry
+    for _, provider := range config.Providers {
+        switch provider {
+        case "auth":
+            auth.Register(container.Registry())
+        }
+    }
 
     // Initialize HTTP service without PubSub hub (pass nil)
     httpSvc := services.NewHTTPService(container, nil)

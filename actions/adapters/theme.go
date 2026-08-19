@@ -116,6 +116,8 @@ func (ta *ThemeAdapter) Render(w http.ResponseWriter, document, consumer, view s
     return tpl.ExecuteTemplate(w, "page", data)
 }
 
+// In ThemeAdapter.loadTemplateSet method, change the template.New to use the new delimiters:
+
 func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*template.Template, error) {
     key := fmt.Sprintf("%s:%s:%s", document, consumer, view)
 
@@ -142,8 +144,8 @@ func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*templ
         }
         
         // Parse the base document template
-        // IMPORTANT: Use "page" as the template name, not the document variable
-        tpl, err := template.New("page").Delims("{{", "}}").ParseFiles(docPath)
+        // IMPORTANT: Use "page" as the template name with <% %> delimiters
+        tpl, err := template.New("page").Delims("<%", "%>").ParseFiles(docPath)
         if err != nil {
             return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("document template error: %v", err))
         }
@@ -166,7 +168,7 @@ func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*templ
             return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("theme template not found for consumer: %s", consumer))
         }
 
-        // Parse the theme template
+        // Parse the theme template - it will inherit the delimiters from the parent template
         tpl, err = tpl.ParseFiles(themePath)
         if err != nil {
             return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("theme template error: %v", err))
@@ -190,7 +192,7 @@ func (ta *ThemeAdapter) loadTemplateSet(document, consumer, view string) (*templ
             return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("view template not found: %s", view))
         }
 
-        // Parse the view template
+        // Parse the view template - it will inherit the delimiters from the parent template
         tpl, err = tpl.ParseFiles(viewPath)
         if err != nil {
             return nil, quality.ErrFsIO.WithDetail(fmt.Sprintf("view template error: %v", err))

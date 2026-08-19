@@ -5,8 +5,10 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/julienschmidt/httprouter v1.3.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/sync v0.16.0
 	golang.org/x/time v0.12.0
 	gopkg.in/mail.v2 v2.3.1

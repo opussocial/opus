@@ -14,10 +14,12 @@ import (
   "path/filepath"
   "html/template"
   
-  "github.com/opussocialcontent/opus-go/actions"
-  "github.com/opussocialcontent/opus-go/quality"
   "github.com/julienschmidt/httprouter"
   "golang.org/x/time/rate"
+
+  "github.com/opussocialcontent/opus-go/actions"
+  "github.com/opussocialcontent/opus-go/providers/auth"
+  "github.com/opussocialcontent/opus-go/quality"
 )
 
 // AssetPaths holds the simplified asset paths
@@ -326,13 +328,16 @@ func (h *RouteHandler) handleRoute(w http.ResponseWriter, r *http.Request, rc ac
     tokenHeader := r.Header.Get("Authorization")
     token := strings.ReplaceAll(tokenHeader, "Bearer: ", "")
     
-    claims := &SimpleClaims{UserID: "anonymous"}
+    var userID uint
     if token != "" {
-      claims = &SimpleClaims{UserID: "user_" + token}
+      claims, err := auth.ParseBearerToken(token)
+      if err == nil && claims != nil {
+        userID = claims.UserID
+      }
     }
     
     ctx = context.WithValue(ctx, "authToken", token)
-    ctx = context.WithValue(ctx, "userID", claims.UserID)
+    ctx = context.WithValue(ctx, "userID", userID)
   }
   r = r.WithContext(ctx)
 
@@ -572,31 +577,33 @@ func (h *RouteHandler) handleError(w http.ResponseWriter, r *http.Request, err e
   }
 }
 
+
 func (h *RouteHandler) handleHTMLError(w http.ResponseWriter, status int, message string) {
-  // Check if headers are already written
-  if w.Header().Get("Content-Type") == "" {
-    w.Header().Set("Content-Type", "text/html; charset=utf-8")
-  }
-  
-  data := map[string]interface{}{
-    "Title":  "Opus",
-    "Error":  message,
-  }
-  
-  // Try to find an error template
-  errorTemplatePath, err := h.findTemplatePath("site", "error")
-  if err == nil {
-    tmpl, err := template.ParseFiles(errorTemplatePath)
-    if err == nil {
-      tmpl.Execute(w, data)
-      w.WriteHeader(status)
-      return
+    // Check if headers are already written
+    if w.Header().Get("Content-Type") == "" {
+        w.Header().Set("Content-Type", "text/html; charset=utf-8")
     }
-  }
-  
-  // Fallback to simple HTML error
-  w.WriteHeader(status)
-  html := fmt.Sprintf(`<!DOCTYPE html>
+    
+    data := map[string]interface{}{
+        "Title":  "Opus",
+        "Error":  message,
+    }
+    
+    // Try to find an error template
+    errorTemplatePath, err := h.findTemplatePath("site", "error")
+    if err == nil {
+        // Use <% %> delimiters for error template too
+        tmpl, err := template.New("error").Delims("<%", "%>").ParseFiles(errorTemplatePath)
+        if err == nil {
+            tmpl.Execute(w, data)
+            w.WriteHeader(status)
+            return
+        }
+    }
+    
+    // Fallback to simple HTML error
+    w.WriteHeader(status)
+    html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
   <title>Error %d</title>
@@ -611,7 +618,7 @@ func (h *RouteHandler) handleHTMLError(w http.ResponseWriter, status int, messag
   <div class="error">%s</div>
 </body>
 </html>`, status, status, message)
-  w.Write([]byte(html))
+    w.Write([]byte(html))
 }
 
 func (h *RouteHandler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) error {
@@ -632,3 +639,4 @@ func writeJSONError(w http.ResponseWriter, status int, message, detail string) {
     "details": detail,
   })
 }
+

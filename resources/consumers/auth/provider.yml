@@ -1,8 +1,8 @@
-consumer:
+provider:
   name: auth
   http:
     api:
-      prefix: api/v1/auth
+      prefix: /api/v1/auth
       routes:
         - payload: auth:register
           action: auth:register
@@ -12,7 +12,6 @@ consumer:
           action: auth:login
           method: POST
           pattern: /login
-          # session: true
         - payload: auth:token
           action: auth:logout
           method: POST
@@ -52,18 +51,3 @@ consumer:
           template: auth
         - pattern: /profile
           template: profile
-  jobs:
-    - name: daily:cleanup
-      schedule: daily
-      action: cleanup
-      timeout: 300  # in seconds
-    - name: hourly:stats
-      schedule: 0 * * * *
-      action: stats:generate
-  subscribers:
-    - topic: before:action
-      action: auth:before
-    - topic: after:auth:register
-      action: email:welcome
-    - topic: after:auth:login
-      action: email:login:alert

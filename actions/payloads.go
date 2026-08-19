@@ -6,7 +6,6 @@ import (
 	"github.com/opussocialcontent/opus-go/quality"	
 )
 
-
 type Validatable interface {
     Validate() error
 }
